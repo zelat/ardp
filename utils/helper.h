@@ -4,7 +4,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <arpa/inet.h>
-#include "base.h"
 
 typedef struct buf_ {
 	uint8_t *ptr;

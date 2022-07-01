@@ -4,7 +4,6 @@
 
 #include "utils/helper.h"
 #include "utils/asm.h"
-#include "base.h"
 
 static int asm_compare(void *node, tree_node_t *key)
 {

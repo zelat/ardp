@@ -2,7 +2,6 @@
 #define __TIMER_WHEEL_H_
 
 #include "urcu/list.h"
-#include "base.h"
 
 #define MAX_TIMER_SLOTS 3600
 

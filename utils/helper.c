@@ -1,4 +1,3 @@
-#define _XOPEN_SOURCE 700  //支持POSI Xhttps://stackoverflow.com/questions/46013382/c-strndup-implicit-declaration
 #include <sys/types.h>
 #include <string.h>
 #include <stdint.h>

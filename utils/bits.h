@@ -3,7 +3,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "base.h"
 
 #define INDEX2MASK(index) (1 << (index))
 
@@ -83,7 +82,7 @@ static inline BITOP *boInitBITOP (BITOP *bitop, int numbits)
         boDestroyBITOP(bitop);
     }
 
-    bitop->buffer = calloc(1, BITMASK_ARRAY_SIZE(numbits));
+    bitop->buffer = (uint8_t *)calloc(1, BITMASK_ARRAY_SIZE(numbits));
     if (bitop->buffer == NULL) {
         return NULL;
     }

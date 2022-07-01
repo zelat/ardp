@@ -1,5 +1,4 @@
 #include "utils/rcu_map.h"
-#include "base.h"
 
 rcu_map_t *rcu_map_init(rcu_map_t *m, uint32_t buckets, int node_offset,
                         cds_lfht_match_fct match_func, rcu_map_hash_fct hash_func)

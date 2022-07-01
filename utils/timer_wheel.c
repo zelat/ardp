@@ -4,7 +4,6 @@
 
 #include "utils/timer_wheel.h"
 #include "utils/helper.h"
-#include "base.h"
 
 
 void timer_wheel_init(timer_wheel_t *w)

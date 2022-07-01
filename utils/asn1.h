@@ -1,7 +1,6 @@
 #ifndef __ASN1_H__
 #define __ASN1_H__
 
-#include <stdbool.h>
 #include "helper.h"
 
 enum {

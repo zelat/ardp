@@ -4,11 +4,16 @@
 
 #include <getopt.h>
 #include <string.h>
+
+#ifdef __cplusplus
 extern "C" {
-    #include "utils/rcu_map.h"
-    #include "apis.h"
-    #include "debug.h"
+#endif
+#include "utils/rcu_map.h"
+#include "apis.h"
+#include "debug.h"
+#ifdef __cplusplus
 }
+#endif
 
 char * g_in_iface;       //网络设备名字
 io_config_t g_config;

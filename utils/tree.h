@@ -2,7 +2,6 @@
 #define __TREE_H__
 
 #include <stddef.h>
-#include "base.h"
 
 typedef struct tree_node_ {
     struct tree_node_ *links[3];

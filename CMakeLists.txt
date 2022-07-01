@@ -12,7 +12,9 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(CMAKE_C_FLAGS "-std=gnu99")
+
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 
 include(cmake/Modules/hyperscan-5.4.0.cmake)
 include(cmake/Modules/pcap-1.9.0.cmake)
