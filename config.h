@@ -8,4 +8,6 @@
 
 #define DPI_MAX_PCRE_PATTERNS 16   //PCRE最大匹配个数
 
+#define MAX_DP_THREADS 4           //最大的DP线程数
+
 #endif //ARDP_CONFIG_H

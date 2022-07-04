@@ -15,6 +15,8 @@ extern "C" {
 }
 #endif
 
+#include "dpi/sig/dpi_hs_search.h"
+
 char * g_in_iface;       //网络设备名字
 io_config_t g_config;
 rcu_map_t g_ep_map;
@@ -44,5 +46,7 @@ int main(int argc, char **argv){
                 exit(-2);
         }
     }
+
+    dpi_hs_search dpiHsSearch();
 
 }
