@@ -3,7 +3,14 @@
 //
 #include <sys/un.h>
 #include <sys/socket.h>
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 #include <utils/helper.h>
+#ifdef __cplusplus
+}
+#endif
 #include <unistd.h>
 #include "ctrl.h"
 #include "config.h"
