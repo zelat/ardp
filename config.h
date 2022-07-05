@@ -10,4 +10,7 @@
 
 #define MAX_DP_THREADS 4           //最大的DP线程数
 
+#define DP_SERVER_SOCK "/tmp/dp_listen.sock"     // dp_ctrl通信
+
+#define CTRL_NOTIFY_SOCK "/tmp/ctrl_listen.sock" // dp_ctrl通信
 #endif //ARDP_CONFIG_H

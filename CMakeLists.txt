@@ -16,12 +16,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 
-include(cmake/Modules/hyperscan-5.4.0.cmake)
+
 include(cmake/Modules/pcap-1.9.0.cmake)
 include(cmake/Modules/userspace-rcu-0.13.1.cmake)
 include(cmake/Modules/jansson-2.14.cmake)
 include(cmake/Modules/libnetfilter_queue-1.0.5.cmake)
 include(cmake/Modules/pcre2-10.40.cmake)
+include(cmake/Modules/hyperscan-5.4.0.cmake)
 #编译时候的选项
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Werror -Wno-unused-result -Wno-unused-function -fstrict-aliasing -Wstrict-aliasing -g")
 
@@ -49,7 +50,6 @@ target_link_libraries(utils urcu urcu-cds) #urcu-cds rt stdc++ m mnl netfilter_q
 
 add_library(dpi "" apis.h config.h dpi/sig/dpi_hyperscan.h)
 target_sources(dpi
-
         PRIVATE
 #        "${CMAKE_SOURCE_DIR}/dpi/dpi_adapter.cc"
         "${CMAKE_SOURCE_DIR}/dpi/sig/dpi_hs_search.cc"
@@ -59,5 +59,14 @@ target_sources(dpi
 target_link_libraries(dpi hs pcap jansson netfilter_queue)
 target_link_libraries(dpi utils)
 
+
+add_library(conn "" apis.h config.h)
+target_sources(conn
+        PRIVATE
+        "${CMAKE_SOURCE_DIR}/conn/ctrl.cc"
+        )
+target_link_libraries(conn utils)
+
+
 add_executable(ardp main.cc debug.c)
-target_link_libraries(ardp dpi utils)
+target_link_libraries(ardp dpi utils conn)

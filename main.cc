@@ -16,6 +16,10 @@ extern "C" {
 #endif
 
 #include "dpi/sig/dpi_hs_search.h"
+#include "conn/ctrl.h"
+
+__thread int THREAD_ID;           //线程局部存储
+__thread char THREAD_NAME[32];
 
 char * g_in_iface;       //网络设备名字
 io_config_t g_config;
@@ -47,6 +51,7 @@ int main(int argc, char **argv){
         }
     }
 
-    dpi_hs_search dpiHsSearch();
-
+//    dpi_hs_search dpiHsSearch();
+    ctrl cl;
+    cl.dp_ctrl_loop();
 }

@@ -2264,7 +2264,7 @@ case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
 ac_config_headers="$ac_config_headers config.h"
 
 
-am__api_version='1.13'
+am__api_version='1.16'
 
 # Find a good install program.  We prefer a C program (faster),
 # so one script is as good as another.  But avoid the broken or
