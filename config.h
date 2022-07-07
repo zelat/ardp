@@ -13,4 +13,7 @@
 #define DP_SERVER_SOCK "/tmp/dp_listen.sock"     // dp_ctrl通信
 
 #define CTRL_NOTIFY_SOCK "/tmp/ctrl_listen.sock" // dp_ctrl通信
+
+#define BUF_SIZE 8192                            // dp从agent接收到的packet大小
+
 #endif //ARDP_CONFIG_H
