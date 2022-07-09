@@ -49,7 +49,7 @@ target_sources(utils
         )
 target_link_libraries(utils urcu urcu-cds) #urcu-cds rt stdc++ m mnl netfilter_queue
 
-add_library(dpi "" apis.h config.h dpi/sig/dpi_hyperscan.h)
+add_library(dpi "" dpi/sig/dpi_hyperscan.h)
 target_sources(dpi
         PRIVATE
 #        "${CMAKE_SOURCE_DIR}/dpi/dpi_adapter.cc"
@@ -61,7 +61,7 @@ target_link_libraries(dpi hs pcap jansson netfilter_queue)
 target_link_libraries(dpi utils)
 
 
-add_library(conn "" apis.h config.h)
+add_library(conn "" base.cc)
 target_sources(conn
         PRIVATE
         "${CMAKE_SOURCE_DIR}/conn/ctrl.cc"

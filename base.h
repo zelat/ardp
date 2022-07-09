@@ -6,10 +6,18 @@
 #define DPI_TEST_BASE_H
 
 #include <inttypes.h>
-#include "utils/timer_queue.h"
-#include "urcu/hlist.h"
 #include "defs.h"
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+#include "utils/timer_queue.h"
 #include "utils/rcu_map.h"
+#include "urcu/hlist.h"
+#ifdef __cplusplus
+}
+#endif
+
 
 #define max(x,y) (((x)>(y))?(x):(y))
 #define min(x,y) (((x)<(y))?(x):(y))
@@ -34,8 +42,5 @@ typedef struct rate_limiter_ {
     uint32_t total_pass;
 } dp_rate_limter_t;
 
-time_t get_current_time()
-{
-    return (g_start_time + g_seconds);
-}
+time_t get_current_time();
 #endif //DPI_TEST_BASE_H
