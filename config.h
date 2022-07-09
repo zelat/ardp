@@ -16,4 +16,6 @@
 
 #define BUF_SIZE 8192                            // dp从agent接收到的packet大小
 
+#define FQDN_IPS_PER_MSG ((DP_MSG_SIZE - sizeof(DPMsgHdr) - sizeof(DPMsgFqdnIpHdr)) / sizeof(DPMsgFqdnIp))
+
 #endif //ARDP_CONFIG_H

@@ -390,10 +390,12 @@ void dp_dlp_destroy(void *dlp_detector);
 
 #define CTRL_REQ_TIMEOUT 4
 #define CTRL_DLP_REQ_TIMEOUT 2
-extern pthread_cond_t g_ctrl_req_cond;
-extern pthread_mutex_t g_ctrl_req_lock;
+
+/* 互斥量 */
+//extern pthread_cond_t g_ctrl_req_cond;
+//extern pthread_mutex_t g_ctrl_req_lock;
 extern int dp_data_wait_ctrl_req_thr(int req, int thr_id);
-extern pthread_cond_t g_dlp_ctrl_req_cond;
-extern pthread_mutex_t g_dlp_ctrl_req_lock;
+//extern pthread_cond_t g_dlp_ctrl_req_cond;
+//extern pthread_mutex_t g_dlp_ctrl_req_lock;
 extern int dp_dlp_wait_ctrl_req_thr(int req);
 #endif //ARDP_APIS_H

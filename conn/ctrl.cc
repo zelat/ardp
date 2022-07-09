@@ -3,6 +3,7 @@
 //
 #include <sys/un.h>
 #include <sys/socket.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -11,6 +12,7 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
+
 #include <unistd.h>
 #include <apis.h>
 #include <iostream>
@@ -18,7 +20,7 @@ extern "C"
 #include "config.h"
 
 
-using namespace  std;
+using namespace std;
 
 struct sockaddr_un ctrl::g_ctrl_notify_addr;
 struct sockaddr_un ctrl::g_client_addr;
@@ -46,8 +48,7 @@ int ctrl::make_named_socket(const char *filename) {
     return sock;
 }
 
-int ctrl::make_notify_client(const char *filename)
-{
+int ctrl::make_notify_client(const char *filename) {
     int sock;
 
     sock = socket(PF_UNIX, SOCK_DGRAM, 0);
@@ -61,8 +62,25 @@ int ctrl::make_notify_client(const char *filename)
     return sock;
 }
 
-ctrl::ctrl() {
-    g_running = true;
+//初始化dp线程池
+ctrl::ctrl():
+      g_running(true)
+{
+    int thread_id, i;
+    for (thread_id=0; thread_id < g_dp_threads; thread_id++){
+        dp_thread_data_t *th_data = &g_dp_thread_data[thread_id];      //th_data每个dp线程的数据
+        th_data->log_reader = MAX_LOG_ENTRIES -1;
+        for (i = 0; i < MAX_LOG_ENTRIES; i ++) {
+            auto *hdr = (DPMsgHdr *)th_data->log_ring[i];
+            hdr->Kind = DP_KIND_THREAT_LOG;                            //操作类型DP_KIND_THREAT_LOG
+            hdr->Length = htons(LOG_ENTRY_SIZE);                       //发送数据包DP_KIND_THREAT_LOG的大小 = 消息头DPMsgHdr大小 + DPMsgThreatlog的大小
+        }
+
+        //connection map
+        rcu_map_init()
+    }
+//    g_running = true;
+
 }
 
 int ctrl::dp_ctrl_handler(int fd) {
@@ -71,7 +89,7 @@ int ctrl::dp_ctrl_handler(int fd) {
     char ctrl_msg_buf[BUF_SIZE];
 
     len = sizeof(struct sockaddr_un);
-    size = recvfrom(fd, ctrl_msg_buf, BUF_SIZE -1, 0, (struct sockaddr *)&g_client_addr, &len);
+    size = recvfrom(fd, ctrl_msg_buf, BUF_SIZE - 1, 0, (struct sockaddr *) &g_client_addr, &len);
     ctrl_msg_buf[size] = '\0';
 
     json_t *root;
@@ -86,9 +104,9 @@ int ctrl::dp_ctrl_handler(int fd) {
     const char *key;
     json_t *msg;
 
-    json_object_foreach(root, key, msg){
+    json_object_foreach(root, key, msg) {
         //测试
-        if (strcmp(key, "ctrl_keep_alive") == 0){
+        if (strcmp(key, "ctrl_keep_alive") == 0) {
             cout << json_dumps(msg, JSON_ENSURE_ASCII) << endl;
             dp_ctrl_keep_alive(msg);
             continue;
@@ -157,7 +175,6 @@ int ctrl::dp_ctrl_handler(int fd) {
         } else if (strcmp(key, "ctrl_sys_conf") == 0) {
             cout << "dp_ctrl_sys_conf" << endl;
         }
-        cout << key << " done" << endl;
     }
 
     json_decref(root);
@@ -173,11 +190,15 @@ void ctrl::dp_ctrl_loop() {
 
     strlcpy(THREAD_NAME, "cmd", MAX_THREAD_NAME_LEN);
 
-//    rcu_register_thread();
+    rcu_register_thread();
 
     unlink(DP_SERVER_SOCK);
-    g_ctrl_fd = make_named_socket(DP_SERVER_SOCK);
-    g_ctrl_notify_fd = make_notify_client(CTRL_NOTIFY_SOCK);
+    //创建通信句柄文件
+    g_ctrl_fd = make_named_socket(DP_SERVER_SOCK);               //这个fd用于agent主动向DP发送数据,DP回复
+    g_ctrl_notify_fd = make_notify_client(CTRL_NOTIFY_SOCK);     //这个fd用于DP主动向agent发送数据
+
+    /* 互斥锁初始化. */
+
     clock_gettime(CLOCK_MONOTONIC, &last);
     while (g_running) {
         cout << "等待数据传输" << endl;
@@ -187,8 +208,7 @@ void ctrl::dp_ctrl_loop() {
         FD_ZERO(&read_fds);
         FD_SET(g_ctrl_fd, &read_fds);
         ret = select(g_ctrl_fd + 1, &read_fds, nullptr, nullptr, &timeout);
-        cout << "ret = " << ret << endl;
-        if (ret > 0 && FD_ISSET(g_ctrl_fd, &read_fds)){
+        if (ret > 0 && FD_ISSET(g_ctrl_fd, &read_fds)) {
             cout << "接收到agent发送的消息" << endl;
             //调试代码
             dp_ctrl_handler(g_ctrl_fd);
@@ -198,38 +218,58 @@ void ctrl::dp_ctrl_loop() {
 
         if (now.tv_sec - last.tv_sec >= 2) {
             last = now;
+            //发送数据给agent
+//            dp_ctrl_update_fqdn_ip();
         }
         round++;
     }
 
     close(g_ctrl_notify_fd);
     close(g_ctrl_fd);
+    unlink(DP_SERVER_SOCK);
+
+    rcu_unregister_thread();
 }
 
+
+//ardp向agent发送二进制数据
 int ctrl::dp_ctrl_send_binary(void *data, int len) {
     socklen_t addr_len = sizeof(struct sockaddr_un);
 
-    int sent = sendto(g_ctrl_fd, data, len, 0, (struct sockaddr *)&g_client_addr, addr_len);
-    if ( sent < 0 ){
-        cout << "send to error" << endl;
-    } else {
-        cout << "send size = " << send << endl;
-    }
+    int sent = sendto(g_ctrl_fd, data, len, 0, (struct sockaddr *) &g_client_addr, addr_len);
+
     return sent;
+}
+
+//ardp向CTRL_NOTIFY_SOCK发送数据
+int ctrl::dp_ctrl_notify_ctrl(void *data, int len) {
+    // Send binary message actively to ctrl path
+
+    socklen_t addr_len = sizeof(struct sockaddr_un);
+    int sent = sendto(g_ctrl_notify_fd, data, len, 0,
+                      (struct sockaddr *) &g_ctrl_notify_addr, addr_len);
+    return sent;
+
 }
 
 int ctrl::dp_ctrl_keep_alive(json_t *msg) {
     uint32_t seq_num = json_integer_value(json_object_get(msg, "seq_num"));
     uint8_t buf[sizeof(DPMsgHdr) + sizeof(uint32_t)];
 
-    DPMsgHdr *hdr = (DPMsgHdr *)buf;
+    DPMsgHdr *hdr = (DPMsgHdr *) buf;
     hdr->Kind = DP_KIND_KEEP_ALIVE;
     hdr->Length = htons(sizeof(DPMsgHdr) + sizeof(uint32_t));
     hdr->More = 0;
 
-    uint32_t *m = (uint32_t *)(buf + sizeof(DPMsgHdr));
+    uint32_t *m = (uint32_t *) (buf + sizeof(DPMsgHdr));
     *m = htonl(seq_num);
 
     dp_ctrl_send_binary(buf, sizeof(buf));
     return 0;
 }
+
+//void ctrl::dp_ctrl_update_fqdn_ip() {
+//    dp_ctrl_notify_ctrl(g_notify_msg, sizeof(DPMsgHdr));
+//}
+
+
