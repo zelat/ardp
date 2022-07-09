@@ -45,6 +45,7 @@ target_sources(utils
         "${CMAKE_SOURCE_DIR}/utils/bitmap.c"
         "${CMAKE_SOURCE_DIR}/utils/helper.c"
         "${CMAKE_SOURCE_DIR}/utils/tree.c"
+        "${CMAKE_SOURCE_DIR}/utils/debug.c"
         )
 target_link_libraries(utils urcu urcu-cds) #urcu-cds rt stdc++ m mnl netfilter_queue
 
@@ -68,5 +69,5 @@ target_sources(conn
 target_link_libraries(conn utils)
 
 
-add_executable(ardp main.cc debug.c)
+add_executable(ardp main.cc)
 target_link_libraries(ardp dpi utils conn)

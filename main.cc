@@ -10,7 +10,7 @@ extern "C" {
 #endif
 #include "utils/rcu_map.h"
 #include "apis.h"
-#include "debug.h"
+#include "utils/debug.h"
 #ifdef __cplusplus
 }
 #endif

@@ -11,10 +11,10 @@ typedef uint32_t (*rcu_map_hash_fct)(const void *key);
 typedef bool (*rcu_map_for_each_fct)(struct cds_lfht_node *ht_node, void *args);
 
 typedef struct rcu_map_ {
-    struct cds_lfht *map;
-    cds_lfht_match_fct match;
-    rcu_map_hash_fct hash;
-    int offset;
+    struct cds_lfht *map;         //指向哈希表的指针
+    cds_lfht_match_fct match;     //匹配函数，如果键与节点相匹配，此函数必须返回非零，否则返回零
+    rcu_map_hash_fct hash;        //计算元素的哈希值的函数
+    int offset;                   //偏移地址
 } rcu_map_t;
 
 

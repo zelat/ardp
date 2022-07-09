@@ -1,6 +1,4 @@
-#include <stdlib.h>
 #include <stdarg.h>
-#include <string.h>
 #include <strings.h>
 
 #include "apis.h"

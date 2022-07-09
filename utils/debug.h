@@ -84,5 +84,4 @@ void debug_log_no_filter(bool print_ts, const char *fmt, ...);
 uint32_t debug_name2level(const char *name);
 
 const char *debug_action_name(int act);
-time_t get_current_time();
 #endif

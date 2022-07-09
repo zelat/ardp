@@ -1,23 +1,27 @@
 //
-// Created by Administrator on 2022/7/5.
+// Created by tanchao on 2022/7/5.
 //
 #include <sys/un.h>
 #include <sys/socket.h>
+#include <unistd.h>
+#include <iostream>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-#include <utils/helper.h>
+#include "utils/helper.h"
+#include "utils/timer_queue.h"
+#include "utils/bits.h"
+#include "utils/rcu_map.h"
+#include "utils/debug.h"
 #ifdef __cplusplus
 }
 #endif
 
-#include <unistd.h>
-#include <apis.h>
-#include <iostream>
+#include "apis.h"
 #include "ctrl.h"
-#include "config.h"
+
 
 
 using namespace std;
@@ -62,6 +66,31 @@ int ctrl::make_notify_client(const char *filename) {
     return sock;
 }
 
+int ctrl::conn4_match(struct cds_lfht_node *ht_node, const void *key) {
+    conn_node_t *cnode = STRUCT_OF(ht_node, conn_node_t, node);
+    DPMsgConnect *conn = &cnode->conn;
+    const conn4_key_t *ckey = (conn4_key_t *)key;
+
+    return (conn->PolicyId == ckey->pol_id && ip4_get(conn->ClientIP) == ckey->client &&
+            ip4_get(conn->ServerIP) == ckey->server && !!FLAGS_TEST(conn->Flags, DPCONN_FLAG_INGRESS) == ckey->ingress &&
+            conn->Application == ckey->application && conn->ServerPort == ckey->port && conn->IPProto == ckey->ipproto) ? 1 : 0;
+}
+
+uint32_t ctrl::conn4_hash(const void *key) {
+    const conn4_key_t *ckey = (conn4_key_t *)key;
+
+    return sdbm_hash((uint8_t *)&ckey->client, 4) +
+           sdbm_hash((uint8_t *)&ckey->server, 4) + ckey->port + ckey->ingress + ckey->pol_id;
+}
+
+//对经过dp的流量进行限速
+void ctrl::dp_rate_limiter_reset(dp_rate_limter_t *rl, uint16_t dur, uint16_t dur_cnt_limit){
+    memset(rl, 0, sizeof(dp_rate_limter_t));
+    rl->dur = dur;
+    rl->dur_cnt_limit = dur_cnt_limit;
+    rl->start = get_current_time();
+}
+
 //初始化dp线程池
 ctrl::ctrl():
       g_running(true)
@@ -77,7 +106,15 @@ ctrl::ctrl():
         }
 
         //connection map
-        rcu_map_init()
+        rcu_map_init(&th_data->conn4_map[0], 128, offsetof(conn_node_t, node),
+                     conn4_match, conn4_hash);
+        rcu_map_init(&th_data->conn4_map[1], 128, offsetof(conn_node_t, node),
+                     conn4_match, conn4_hash);
+        th_data->conn4_map_cnt[0] = 0;
+        th_data->conn4_map_cnt[1] = 0;
+
+        dp_rate_limiter_reset(&th_data->conn4_rl, CONNECT_RL_DUR, CONNECT_RL_CNT);
+        uatomic_set(&th_data->conn4_map_cur, 0);
     }
 //    g_running = true;
 
