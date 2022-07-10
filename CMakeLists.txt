@@ -61,7 +61,7 @@ target_link_libraries(dpi hs pcap jansson netfilter_queue)
 target_link_libraries(dpi utils)
 
 
-add_library(conn "" base.cc)
+add_library(conn "" base.cc conn/dp_ctrl_handler.cc conn/dp_ctrl_handler.h)
 target_sources(conn
         PRIVATE
         "${CMAKE_SOURCE_DIR}/conn/ctrl.cc"

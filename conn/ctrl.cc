@@ -31,6 +31,7 @@ int ctrl::make_named_socket(const char *filename) {
     int sock;
     size_t size;
 
+    /* create a Unix domain stream socket */
     sock = socket(PF_UNIX, SOCK_DGRAM, 0);
     if (sock < 0) {
         return -1;
@@ -40,7 +41,7 @@ int ctrl::make_named_socket(const char *filename) {
     strlcpy(name.sun_path, filename, sizeof(name.sun_path));
 
     size = (offsetof(struct sockaddr_un, sun_path) + strlen(name.sun_path));
-
+    /* bind the name to the descriptor */
     if (bind(sock, (struct sockaddr *) &name, size) < 0) {
         return -1;
     }
@@ -112,8 +113,6 @@ ctrl::ctrl():
         dp_rate_limiter_reset(&th_data->conn4_rl, CONNECT_RL_DUR, CONNECT_RL_CNT);
         uatomic_set(&th_data->conn4_map_cur, 0);
     }
-//    g_running = true;
-
 }
 
 int ctrl::dp_ctrl_handler(int fd) {
@@ -214,6 +213,7 @@ int ctrl::dp_ctrl_handler(int fd) {
     return 0;
 }
 
+//dp与agent通信主函数
 void ctrl::dp_ctrl_loop() {
     int ret = 0;
     fd_set read_fds;
@@ -237,7 +237,7 @@ void ctrl::dp_ctrl_loop() {
         cout << "等待数据传输" << endl;
         timeout.tv_sec = 2;
         timeout.tv_usec = 0;
-
+        //初始化线程组
         FD_ZERO(&read_fds);
         FD_SET(g_ctrl_fd, &read_fds);
         ret = select(g_ctrl_fd + 1, &read_fds, nullptr, nullptr, &timeout);
@@ -252,7 +252,7 @@ void ctrl::dp_ctrl_loop() {
         if (now.tv_sec - last.tv_sec >= 2) {
             last = now;
             //发送数据给agent
-//            dp_ctrl_update_fqdn_ip();
+//            dp_ctrl_update_app(false);
         }
         round++;
     }
@@ -301,8 +301,6 @@ int ctrl::dp_ctrl_keep_alive(json_t *msg) {
     return 0;
 }
 
-//void ctrl::dp_ctrl_update_fqdn_ip() {
-//    dp_ctrl_notify_ctrl(g_notify_msg, sizeof(DPMsgHdr));
-//}
+
 
 

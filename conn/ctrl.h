@@ -46,8 +46,6 @@ typedef struct conn4_key_ {
     bool ingress;
 } conn4_key_t;
 
-//extern dp_thread_data_t g_dp_thread_data[MAX_DP_THREADS];
-
 class ctrl {
 private:
     int g_dp_threads;                                       //agent与DP连接的线程数
@@ -59,6 +57,7 @@ private:
     int g_running;
     uint8_t g_notify_msg[DP_MSG_SIZE];
     dpi_fqdn_hdl_t *g_fqdn_hdl;
+    rcu_map_t g_ep_map;
     int make_named_socket(const char * filename);
     int make_notify_client(const char *filename);
     static int conn4_match(struct cds_lfht_node *ht_node, const void *key);
@@ -70,7 +69,7 @@ public:
     ctrl();
     void dp_rate_limiter_reset(dp_rate_limter_t *rl, uint16_t dur, uint16_t dur_cnt_limit);
     int dp_ctrl_keep_alive(json_t *msg);
-//    void dp_ctrl_update_fqdn_ip();
+    void dp_ctrl_update_app(bool refresh);
     void dp_ctrl_loop();
 };
 
