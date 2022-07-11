@@ -1,5 +1,6 @@
+#include <stdlib.h>
 #include <stdarg.h>
-#include <strings.h>
+#include <string.h>
 
 #include "apis.h"
 #include "debug.h"

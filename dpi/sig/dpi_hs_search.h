@@ -6,7 +6,7 @@
 #define DPI_TEST_DPI_HS_SEARCH_H
 
 #include "hs.h"
-#include "utils/debug.h"
+#include "base/debug.h"
 #include "dpi_hyperscan.h"
 
 #define INITIAL_PATTERN_ARRAY_ALLOC_SIZE 10

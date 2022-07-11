@@ -34,20 +34,21 @@ include_directories(
 
 find_package (Threads)
 
-add_library(utils "")
-target_sources(utils
+add_library(base "")
+target_sources(base
         PRIVATE
-        "${CMAKE_SOURCE_DIR}/utils/rcu_map.c"
-        "${CMAKE_SOURCE_DIR}/utils/timer_queue.c"
-        "${CMAKE_SOURCE_DIR}/utils/timer_wheel.c"
-        "${CMAKE_SOURCE_DIR}/utils/asm.c"
-        "${CMAKE_SOURCE_DIR}/utils/asn1.c"
-        "${CMAKE_SOURCE_DIR}/utils/bitmap.c"
-        "${CMAKE_SOURCE_DIR}/utils/helper.c"
-        "${CMAKE_SOURCE_DIR}/utils/tree.c"
-        "${CMAKE_SOURCE_DIR}/utils/debug.c"
+        "${CMAKE_SOURCE_DIR}/base/rcu_map.c"
+        "${CMAKE_SOURCE_DIR}/base/timer_queue.c"
+        "${CMAKE_SOURCE_DIR}/base/timer_wheel.c"
+        "${CMAKE_SOURCE_DIR}/base/asm.c"
+        "${CMAKE_SOURCE_DIR}/base/asn1.c"
+        "${CMAKE_SOURCE_DIR}/base/bitmap.c"
+        "${CMAKE_SOURCE_DIR}/base/helper.c"
+        "${CMAKE_SOURCE_DIR}/base/tree.c"
+        "${CMAKE_SOURCE_DIR}/base/debug.c"
+        "${CMAKE_SOURCE_DIR}/base/utils/thread.cc"
         )
-target_link_libraries(utils urcu urcu-cds) #urcu-cds rt stdc++ m mnl netfilter_queue
+target_link_libraries(base urcu urcu-cds) #urcu-cds rt stdc++ m mnl netfilter_queue
 
 add_library(dpi "" dpi/sig/dpi_hyperscan.h)
 target_sources(dpi
@@ -58,16 +59,17 @@ target_sources(dpi
 #        "${CMAKE_SOURCE_DIR}/dpi/dpi_entry.cc"
         )
 target_link_libraries(dpi hs pcap jansson netfilter_queue)
-target_link_libraries(dpi utils)
+target_link_libraries(dpi base)
 
 
-add_library(conn "" base.cc conn/dp_ctrl_handler.cc conn/dp_ctrl_handler.h)
-target_sources(conn
+add_library(network "" base.cc)
+target_sources(network
         PRIVATE
-        "${CMAKE_SOURCE_DIR}/conn/ctrl.cc"
+        "${CMAKE_SOURCE_DIR}/network/ctrl.cc"
+        "${CMAKE_SOURCE_DIR}/network/dp_ctrl_handler.cc"
         )
-target_link_libraries(conn utils)
+target_link_libraries(network base)
 
 
 add_executable(ardp main.cc)
-target_link_libraries(ardp dpi utils conn)
+target_link_libraries(ardp dpi base network)

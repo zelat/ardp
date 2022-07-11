@@ -20,13 +20,6 @@
           </excludedPaths>
         </serverdata>
       </paths>
-      <paths name="raspberry (0a3fe46f-fc39-4b97-b8ea-afdf204dd347)">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
     </serverData>
   </component>
 </project>

@@ -11,8 +11,8 @@
 extern "C"
 {
 #endif
-#include "utils/timer_queue.h"
-#include "utils/rcu_map.h"
+#include "base/timer_queue.h"
+#include "base/rcu_map.h"
 #include "urcu/hlist.h"
 #ifdef __cplusplus
 }

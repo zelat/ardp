@@ -7,8 +7,8 @@
 
 #include "hs.h"
 #include "urcu/list.h"
-#include "config.h"
-#include "utils/bits.h"
+#include "base/config/config.h"
+#include "base/bits.h"
 
 typedef enum dpi_sigopt_type_ {
     DPI_SIGOPT_SIG_ID,

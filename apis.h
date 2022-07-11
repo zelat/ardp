@@ -14,8 +14,8 @@
 
 #include "jansson.h"
 #include "urcu/list.h"
-#include "utils/rcu_map.h"
-#include "utils/bitmap.h"
+#include "base/rcu_map.h"
+#include "base/bitmap.h"
 #include "defs.h"
 
 #define MAX_THREAD_NAME_LEN 32
