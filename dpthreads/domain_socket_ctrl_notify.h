@@ -5,9 +5,9 @@
 #ifndef ARDP_DOMAIN_SOCKET_CTRL_NOTIFY_H
 #define ARDP_DOMAIN_SOCKET_CTRL_NOTIFY_H
 
-
 #include <sys/un.h>
 
+//这个fd用于DP主动向agent发送数据
 namespace dpthreads {
     class DomainSocketCTRLNotify{
     private:

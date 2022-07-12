@@ -22,25 +22,9 @@ extern "C"
 
 using namespace std;
 
-namespace dpthreads{
-//    static struct sockaddr_un g_client_addr;
-    static struct sockaddr_un g_ctrl_notify_addr;
+namespace dpthreads {
 
-    static int make_notify_client(const char *filename) {
-        int sock;
-
-        sock = socket(PF_UNIX, SOCK_DGRAM, 0);
-        if (sock < 0) {
-            return -1;
-        }
-
-        g_ctrl_notify_addr.sun_family = AF_UNIX;
-        strlcpy(g_ctrl_notify_addr.sun_path, filename, sizeof(g_ctrl_notify_addr.sun_path));
-
-        return sock;
-    }
-
-    int DP_CTRL_Thread::conn4_match(struct cds_lfht_node *ht_node, const void *key) {
+    static int conn4_match(struct cds_lfht_node *ht_node, const void *key) {
         conn_node_t *cnode = STRUCT_OF(ht_node, conn_node_t, node);
         DPMsgConnect *conn = &cnode->conn;
         const conn4_key_t *ckey = (conn4_key_t *)key;
@@ -50,28 +34,15 @@ namespace dpthreads{
         conn->Application == ckey->application && conn->ServerPort == ckey->port && conn->IPProto == ckey->ipproto) ? 1 : 0;
     }
 
-    uint32_t DP_CTRL_Thread::conn4_hash(const void *key) {
+    static uint32_t conn4_hash(const void *key) {
         const conn4_key_t *ckey = (conn4_key_t *)key;
 
         return sdbm_hash((uint8_t *)&ckey->client, 4) +
         sdbm_hash((uint8_t *)&ckey->server, 4) + ckey->port + ckey->ingress + ckey->pol_id;
     }
 
-    //对经过dp的流量进行限速
-    void DP_CTRL_Thread::dp_rate_limiter_reset(dp_rate_limter_t *rl, uint16_t dur, uint16_t dur_cnt_limit){
-        memset(rl, 0, sizeof(dp_rate_limter_t));
-        rl->dur = dur;
-        rl->dur_cnt_limit = dur_cnt_limit;
-        rl->start = get_current_time();
-    }
-
-    DP_CTRL_Thread::DP_CTRL_Thread() {
-        g_running = true;
-    }
-
     //初始化dp线程池
     int DP_CTRL_Thread::Init() {
-        bool g_running = true;
         int thread_id, i;
         for (thread_id=0; thread_id < g_dp_threads; thread_id++){
             dp_thread_data_t *th_data = &g_dp_thread_data[thread_id];      //th_data每个dp线程的数据
@@ -207,9 +178,7 @@ namespace dpthreads{
         unlink(DP_SERVER_SOCK);
         //创建通信句柄文件
         g_ctrl_fd = socketDpServer.Init();
-//        g_ctrl_fd = make_named_socket(DP_SERVER_SOCK);               //这个fd用于agent主动向DP发送数据,DP回复
-        g_ctrl_notify_fd = make_notify_client(CTRL_NOTIFY_SOCK);     //这个fd用于DP主动向agent发送数据
-
+        g_ctrl_notify_fd = socketCtrlNotify.Init();
         /* 互斥锁初始化. */
 
         clock_gettime(CLOCK_MONOTONIC, &last);
@@ -232,7 +201,7 @@ namespace dpthreads{
             if (now.tv_sec - last.tv_sec >= 2) {
                 last = now;
                 //发送数据给agent
-                //            dp_ctrl_update_app(false);
+                //dp_ctrl_update_app(false);
             }
             round++;
         }
@@ -242,24 +211,6 @@ namespace dpthreads{
         unlink(DP_SERVER_SOCK);
 
         rcu_unregister_thread();
-    }
-
-
-    //ardp向agent发送二进制数据
-//    int DP_CTRL_Thread::dp_ctrl_send_binary(void *data, int len) {
-//        socklen_t addr_len = sizeof(struct sockaddr_un);
-//        int sent = sendto(g_ctrl_fd, data, len, 0, (struct sockaddr *) &g_client_addr, addr_len);
-//        return sent;
-//    }
-
-    //ardp向CTRL_NOTIFY_SOCK发送数据
-    int DP_CTRL_Thread::dp_ctrl_notify_ctrl(void *data, int len) {
-        // Send binary message actively to ctrl path
-        socklen_t addr_len = sizeof(struct sockaddr_un);
-        int sent = sendto(g_ctrl_notify_fd, data, len, 0,
-                          (struct sockaddr *) &g_ctrl_notify_addr, addr_len);
-        return sent;
-
     }
 
     int DP_CTRL_Thread::dp_ctrl_keep_alive(json_t *msg) {
@@ -279,8 +230,13 @@ namespace dpthreads{
         return 0;
     }
 
-
-
+    //对经过dp的流量进行限速
+    void DP_CTRL_Thread::dp_rate_limiter_reset(dp_rate_limter_t *rl, uint16_t dur, uint16_t dur_cnt_limit){
+        memset(rl, 0, sizeof(dp_rate_limter_t));
+        rl->dur = dur;
+        rl->dur_cnt_limit = dur_cnt_limit;
+        rl->start = get_current_time();
+    }
 }
 
 

@@ -8,6 +8,7 @@
 #include <string>
 #include <sys/un.h>
 
+//这个fd用于agent主动向DP发送数据,DP回复
 namespace dpthreads{
     class DomainSocketDPServer{
     private:

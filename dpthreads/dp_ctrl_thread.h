@@ -10,6 +10,7 @@
 #include "base.h"
 #include "base/config/config.h"
 #include "domain_socket_ctrl_dp.h"
+#include "domain_socket_ctrl_notify.h"
 
 namespace dpthreads{
     //定义dp线程结构
@@ -49,23 +50,18 @@ namespace dpthreads{
         bool ingress;
     } conn4_key_t;
 
-class DP_CTRL_Thread{
+class DP_CTRL_Thread : public base::Singleton<DP_CTRL_Thread>{
     private:
+        int g_running = true;                                   //保持监听状态
         int g_dp_threads;                                       //agent与DP连接的线程数
         dp_thread_data_t g_dp_thread_data[MAX_DP_THREADS];      //线程池
         int g_ctrl_fd;
         int g_ctrl_notify_fd;
-        int g_running;
         uint8_t g_notify_msg[DP_MSG_SIZE];
         dpi_fqdn_hdl_t *g_fqdn_hdl;
         rcu_map_t g_ep_map;
-        static int conn4_match(struct cds_lfht_node *ht_node, const void *key);
-        static uint32_t conn4_hash(const void *key);
-        int dp_ctrl_send_binary(void *data, int len);
         int dp_ctrl_handler(int fd);
-        int dp_ctrl_notify_ctrl(void *data, int len);
     public:
-        DP_CTRL_Thread();
         int Init();
         void Exit();
         void dp_rate_limiter_reset(dp_rate_limter_t *rl, uint16_t dur, uint16_t dur_cnt_limit);
@@ -74,6 +70,7 @@ class DP_CTRL_Thread{
         void dp_ctrl_loop();
     private:
         DomainSocketDPServer socketDpServer;
+        DomainSocketCTRLNotify socketCtrlNotify;
     };
 }
 
