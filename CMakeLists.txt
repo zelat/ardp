@@ -63,6 +63,7 @@ target_sources(dpthreads
         PRIVATE
         "${CMAKE_SOURCE_DIR}/dpthreads/dp_ctrl_thread.cc"
         "${CMAKE_SOURCE_DIR}/dpthreads/domain_socket_ctrl_dp.cc"
+        "${CMAKE_SOURCE_DIR}/dpthreads/domain_socket_ctrl_notify.cc"
         )
 target_link_libraries(dpthreads base)
 
