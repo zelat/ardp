@@ -2,15 +2,16 @@
 // Created by Administrator on 2022/7/5.
 //
 
-#ifndef ARDP_CTRL_H
-#define ARDP_CTRL_H
+#ifndef ARDP_DP_CTRL_THREAD_H
+#define ARDP_DP_CTRL_THREAD_H
 
 #include <ctime>
 #include <base/utils/singleton.h>
 #include "base.h"
 #include "base/config/config.h"
+#include "domain_socket_ctrl_dp.h"
 
-namespace network{
+namespace dpthreads{
     //定义dp线程结构
     typedef struct dp_thread_data_ {
         int epoll_fd;                      //epoll句柄
@@ -48,7 +49,7 @@ namespace network{
         bool ingress;
     } conn4_key_t;
 
-    class Ctrl : public base::Singleton<Ctrl>{
+class DP_CTRL_Thread{
     private:
         int g_dp_threads;                                       //agent与DP连接的线程数
         dp_thread_data_t g_dp_thread_data[MAX_DP_THREADS];      //线程池
@@ -64,14 +65,16 @@ namespace network{
         int dp_ctrl_handler(int fd);
         int dp_ctrl_notify_ctrl(void *data, int len);
     public:
-        Ctrl();
+        DP_CTRL_Thread();
         int Init();
         void Exit();
         void dp_rate_limiter_reset(dp_rate_limter_t *rl, uint16_t dur, uint16_t dur_cnt_limit);
         int dp_ctrl_keep_alive(json_t *msg);
         void dp_ctrl_update_app(bool refresh);
         void dp_ctrl_loop();
+    private:
+        DomainSocketDPServer socketDpServer;
     };
 }
 
-#endif //ARDP_CTRL_H
+#endif //ARDP_DP_CTRL_THREAD_H

@@ -18,36 +18,13 @@ extern "C"
 }
 #endif
 #include "apis.h"
-#include "ctrl.h"
+#include "dp_ctrl_thread.h"
 
 using namespace std;
 
-namespace network{
-    static struct sockaddr_un g_client_addr;
+namespace dpthreads{
+//    static struct sockaddr_un g_client_addr;
     static struct sockaddr_un g_ctrl_notify_addr;
-    //创建socket句柄文件
-    static int make_named_socket(const char *filename) {
-        struct sockaddr_un name;
-        int sock;
-        size_t size;
-
-        /* create a Unix domain stream socket */
-        sock = socket(PF_UNIX, SOCK_DGRAM, 0);
-        if (sock < 0) {
-            return -1;
-        }
-
-        name.sun_family = AF_UNIX;
-        strlcpy(name.sun_path, filename, sizeof(name.sun_path));
-
-        size = (offsetof(struct sockaddr_un, sun_path) + strlen(name.sun_path));
-        /* bind the name to the descriptor */
-        if (bind(sock, (struct sockaddr *) &name, size) < 0) {
-            return -1;
-        }
-
-        return sock;
-    }
 
     static int make_notify_client(const char *filename) {
         int sock;
@@ -63,7 +40,7 @@ namespace network{
         return sock;
     }
 
-    int Ctrl::conn4_match(struct cds_lfht_node *ht_node, const void *key) {
+    int DP_CTRL_Thread::conn4_match(struct cds_lfht_node *ht_node, const void *key) {
         conn_node_t *cnode = STRUCT_OF(ht_node, conn_node_t, node);
         DPMsgConnect *conn = &cnode->conn;
         const conn4_key_t *ckey = (conn4_key_t *)key;
@@ -73,7 +50,7 @@ namespace network{
         conn->Application == ckey->application && conn->ServerPort == ckey->port && conn->IPProto == ckey->ipproto) ? 1 : 0;
     }
 
-    uint32_t Ctrl::conn4_hash(const void *key) {
+    uint32_t DP_CTRL_Thread::conn4_hash(const void *key) {
         const conn4_key_t *ckey = (conn4_key_t *)key;
 
         return sdbm_hash((uint8_t *)&ckey->client, 4) +
@@ -81,41 +58,19 @@ namespace network{
     }
 
     //对经过dp的流量进行限速
-    void Ctrl::dp_rate_limiter_reset(dp_rate_limter_t *rl, uint16_t dur, uint16_t dur_cnt_limit){
+    void DP_CTRL_Thread::dp_rate_limiter_reset(dp_rate_limter_t *rl, uint16_t dur, uint16_t dur_cnt_limit){
         memset(rl, 0, sizeof(dp_rate_limter_t));
         rl->dur = dur;
         rl->dur_cnt_limit = dur_cnt_limit;
         rl->start = get_current_time();
     }
 
-//    Ctrl::Ctrl():
-//    g_running(true)
-//    {
-//        int thread_id, i;
-//        for (thread_id=0; thread_id < g_dp_threads; thread_id++){
-//            dp_thread_data_t *th_data = &g_dp_thread_data[thread_id];      //th_data每个dp线程的数据
-//            th_data->log_reader = MAX_LOG_ENTRIES -1;
-//            for (i = 0; i < MAX_LOG_ENTRIES; i ++) {
-//                auto *hdr = (DPMsgHdr *)th_data->log_ring[i];
-//                hdr->Kind = DP_KIND_THREAT_LOG;                            //操作类型DP_KIND_THREAT_LOG
-//                hdr->Length = htons(LOG_ENTRY_SIZE);                       //发送数据包DP_KIND_THREAT_LOG的大小 = 消息头DPMsgHdr大小 + DPMsgThreatlog的大小
-//            }
-//
-//            //connection map
-//            rcu_map_init(&th_data->conn4_map[0], 128, offsetof(conn_node_t, node),
-//                         conn4_match, conn4_hash);
-//            rcu_map_init(&th_data->conn4_map[1], 128, offsetof(conn_node_t, node),
-//                         conn4_match, conn4_hash);
-//            th_data->conn4_map_cnt[0] = 0;
-//            th_data->conn4_map_cnt[1] = 0;
-//
-//            dp_rate_limiter_reset(&th_data->conn4_rl, CONNECT_RL_DUR, CONNECT_RL_CNT);
-//            uatomic_set(&th_data->conn4_map_cur, 0);
-//        }
-//    }
+    DP_CTRL_Thread::DP_CTRL_Thread() {
+        g_running = true;
+    }
 
     //初始化dp线程池
-    int Ctrl::Init() {
+    int DP_CTRL_Thread::Init() {
         bool g_running = true;
         int thread_id, i;
         for (thread_id=0; thread_id < g_dp_threads; thread_id++){
@@ -140,13 +95,12 @@ namespace network{
         }
     }
 
-    int Ctrl::dp_ctrl_handler(int fd) {
-        socklen_t len;
+    int DP_CTRL_Thread::dp_ctrl_handler(int fd) {
         int size, ret = 0;
         char ctrl_msg_buf[BUF_SIZE];
 
-        len = sizeof(struct sockaddr_un);
-        size = recvfrom(fd, ctrl_msg_buf, BUF_SIZE - 1, 0, (struct sockaddr *) &g_client_addr, &len);
+        size = socketDpServer.ReceiveBinary(ctrl_msg_buf, BUF_SIZE - 1);
+
         ctrl_msg_buf[size] = '\0';
 
         json_t *root;
@@ -239,7 +193,7 @@ namespace network{
     }
 
     //dp与agent通信主函数
-    void Ctrl::dp_ctrl_loop() {
+    void DP_CTRL_Thread::dp_ctrl_loop() {
         int ret = 0;
         fd_set read_fds;
         int round = 0;
@@ -252,7 +206,8 @@ namespace network{
 
         unlink(DP_SERVER_SOCK);
         //创建通信句柄文件
-        g_ctrl_fd = make_named_socket(DP_SERVER_SOCK);               //这个fd用于agent主动向DP发送数据,DP回复
+        g_ctrl_fd = socketDpServer.Init();
+//        g_ctrl_fd = make_named_socket(DP_SERVER_SOCK);               //这个fd用于agent主动向DP发送数据,DP回复
         g_ctrl_notify_fd = make_notify_client(CTRL_NOTIFY_SOCK);     //这个fd用于DP主动向agent发送数据
 
         /* 互斥锁初始化. */
@@ -291,18 +246,15 @@ namespace network{
 
 
     //ardp向agent发送二进制数据
-    int Ctrl::dp_ctrl_send_binary(void *data, int len) {
-        socklen_t addr_len = sizeof(struct sockaddr_un);
-
-        int sent = sendto(g_ctrl_fd, data, len, 0, (struct sockaddr *) &g_client_addr, addr_len);
-
-        return sent;
-    }
+//    int DP_CTRL_Thread::dp_ctrl_send_binary(void *data, int len) {
+//        socklen_t addr_len = sizeof(struct sockaddr_un);
+//        int sent = sendto(g_ctrl_fd, data, len, 0, (struct sockaddr *) &g_client_addr, addr_len);
+//        return sent;
+//    }
 
     //ardp向CTRL_NOTIFY_SOCK发送数据
-    int Ctrl::dp_ctrl_notify_ctrl(void *data, int len) {
+    int DP_CTRL_Thread::dp_ctrl_notify_ctrl(void *data, int len) {
         // Send binary message actively to ctrl path
-
         socklen_t addr_len = sizeof(struct sockaddr_un);
         int sent = sendto(g_ctrl_notify_fd, data, len, 0,
                           (struct sockaddr *) &g_ctrl_notify_addr, addr_len);
@@ -310,7 +262,7 @@ namespace network{
 
     }
 
-    int Ctrl::dp_ctrl_keep_alive(json_t *msg) {
+    int DP_CTRL_Thread::dp_ctrl_keep_alive(json_t *msg) {
         uint32_t seq_num = json_integer_value(json_object_get(msg, "seq_num"));
         uint8_t buf[sizeof(DPMsgHdr) + sizeof(uint32_t)];
 
@@ -322,9 +274,12 @@ namespace network{
         uint32_t *m = (uint32_t *) (buf + sizeof(DPMsgHdr));
         *m = htonl(seq_num);
 
-        dp_ctrl_send_binary(buf, sizeof(buf));
+//        dp_ctrl_send_binary(buf, sizeof(buf));
+        socketDpServer.SendBinary(buf, sizeof(buf));
         return 0;
     }
+
+
 
 }
 

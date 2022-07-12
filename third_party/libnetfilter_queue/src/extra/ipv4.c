@@ -27,7 +27,7 @@
 
 /**
  * nfq_ip_get_hdr - get the IPv4 header
- * \param pktb: Pointer to user-space network packet buffer
+ * \param pktb: Pointer to user-space dpthreads packet buffer
  * \returns validated pointer to the IPv4 header or NULL if IP is malformed or
  * not version 4
  *
@@ -61,7 +61,7 @@ struct iphdr *nfq_ip_get_hdr(struct pkt_buff *pktb)
 
 /**
  * nfq_ip_set_transport_header - set the \b transport_header field in \b pktb
- * \param pktb: Pointer to user-space network packet buffer
+ * \param pktb: Pointer to user-space dpthreads packet buffer
  * \param iph: Pointer to the IPv4 header
  * \returns 0 on success or -1 if a minimal validation check fails
  * \note
@@ -113,7 +113,7 @@ void nfq_ip_set_checksum(struct iphdr *iph)
 
 /**
  * nfq_ip_mangle - mangle IPv4 packet buffer
- * \param pktb: Pointer to user-space network packet buffer
+ * \param pktb: Pointer to user-space dpthreads packet buffer
  * \param dataoff: Offset to layer 4 header, or zero to mangle IP header
  * \param match_offset: Offset to content that you want to mangle
  * \param match_len: Length of the existing content you want to mangle

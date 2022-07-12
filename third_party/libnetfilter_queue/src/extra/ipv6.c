@@ -28,7 +28,7 @@
 
 /**
  * nfq_ip6_get_hdr - get IPv6 header
- * \param pktb: Pointer to user-space network packet buffer
+ * \param pktb: Pointer to user-space dpthreads packet buffer
  *
  * \returns pointer to IPv6 header if a valid header found, else NULL.
  */
@@ -53,7 +53,7 @@ struct ip6_hdr *nfq_ip6_get_hdr(struct pkt_buff *pktb)
 
 /**
  * nfq_ip6_set_transport_header - set transport header pointer for IPv6 packet
- * \param pktb: Pointer to user-space network packet buffer
+ * \param pktb: Pointer to user-space dpthreads packet buffer
  * \param ip6h: Pointer to IPv6 header
  * \param target: Protocol number to find transport header (ie. IPPROTO_*)
  *
@@ -118,7 +118,7 @@ int nfq_ip6_set_transport_header(struct pkt_buff *pktb, struct ip6_hdr *ip6h,
 
 /**
  * nfq_ip6_mangle - mangle IPv6 packet buffer
- * \param pktb: Pointer to user-space network packet buffer
+ * \param pktb: Pointer to user-space dpthreads packet buffer
  * \param dataoff: Offset to layer 4 header
  * \param match_offset: Offset to content that you want to mangle
  * \param match_len: Length of the existing content you want to mangle

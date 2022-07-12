@@ -21,10 +21,10 @@
 #include "internal.h"
 
 /**
- * \defgroup pktbuff User-space network packet buffer
+ * \defgroup pktbuff User-space dpthreads packet buffer
  *
- * This library provides the user-space network packet buffer. This abstraction
- * is strongly inspired by Linux kernel network buffer, the so-called sk_buff.
+ * This library provides the user-space dpthreads packet buffer. This abstraction
+ * is strongly inspired by Linux kernel dpthreads buffer, the so-called sk_buff.
  *
  * @{
  */
@@ -94,9 +94,9 @@ struct pkt_buff *pktb_alloc(int family, void *data, size_t len, size_t extra)
 }
 
 /**
- * pktb_data - get pointer to network packet
+ * pktb_data - get pointer to dpthreads packet
  * \param pktb Pointer to userspace packet buffer
- * \return Pointer to start of network packet data within __pktb__
+ * \return Pointer to start of dpthreads packet data within __pktb__
  * \par
  * It is appropriate to use _pktb_data_ as the second argument of
  * nfq_nlmsg_verdict_put_pkt()

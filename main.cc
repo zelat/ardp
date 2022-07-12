@@ -8,15 +8,15 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "utils/rcu_map.h"
+#include "base/rcu_map.h"
 #include "apis.h"
-#include "utils/debug.h"
+#include "base/debug.h"
 #ifdef __cplusplus
 }
 #endif
 
 #include "dpi/sig/dpi_hs_search.h"
-#include "conn/ctrl.h"
+#include "dpthreads/dp_ctrl_thread.h"
 
 __thread int THREAD_ID;           //线程局部存储
 __thread char THREAD_NAME[32];
@@ -52,6 +52,8 @@ int main(int argc, char **argv){
     }
 
 //    dpi_hs_search dpiHsSearch();
-    ctrl cl;
-    cl.dp_ctrl_loop();
+    dpthreads::DP_CTRL_Thread dpCtrlThread;
+    dpCtrlThread.Init();
+    dpCtrlThread.dp_ctrl_loop();
+
 }

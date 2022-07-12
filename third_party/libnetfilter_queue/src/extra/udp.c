@@ -32,7 +32,7 @@
 
 /**
  * nfq_udp_get_hdr - get the UDP header.
- * \param pktb: Pointer to userspace network packet buffer
+ * \param pktb: Pointer to userspace dpthreads packet buffer
  *
  * \returns validated pointer to the UDP header or NULL if the UDP header was
  * not set or if a minimal length check fails.
@@ -55,7 +55,7 @@ struct udphdr *nfq_udp_get_hdr(struct pkt_buff *pktb)
 /**
  * nfq_udp_get_payload - get the UDP packet payload.
  * \param udph: Pointer to UDP header
- * \param pktb: Pointer to userspace network packet buffer
+ * \param pktb: Pointer to userspace dpthreads packet buffer
  * \returns Pointer to the UDP payload, or NULL if malformed UDP packet.
  */
 EXPORT_SYMBOL
@@ -77,7 +77,7 @@ void *nfq_udp_get_payload(struct udphdr *udph, struct pkt_buff *pktb)
 /**
  * nfq_udp_get_payload_len - get the udp packet payload.
  * \param udph: Pointer to UDP header
- * \param pktb: Pointer to userspace network packet buffer
+ * \param pktb: Pointer to userspace dpthreads packet buffer
  * \returns Length of UDP payload (user data)
  */
 EXPORT_SYMBOL
@@ -136,7 +136,7 @@ void nfq_udp_compute_checksum_ipv6(struct udphdr *udph, struct ip6_hdr *ip6h)
 
 /**
  * nfq_udp_mangle_ipv4 - Mangle UDP/IPv4 packet buffer
- * \param pktb: Pointer to network packet buffer
+ * \param pktb: Pointer to dpthreads packet buffer
  * \param match_offset: Offset from start of UDP data of content that you want
  * to mangle
  * \param match_len: Length of the existing content you want to mangle
@@ -170,7 +170,7 @@ int nfq_udp_mangle_ipv4(struct pkt_buff *pktb,
 
 /**
  * nfq_udp_mangle_ipv6 - Mangle UDP/IPv6 packet buffer
- * \param pktb: Pointer to network packet buffer
+ * \param pktb: Pointer to dpthreads packet buffer
  * \param match_offset: Offset from start of UDP data of content that you want
  * to mangle
  * \param match_len: Length of the existing content you want to mangle

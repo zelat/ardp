@@ -919,7 +919,7 @@ int nfq_set_verdict_batch2(struct nfq_q_handle *qh, uint32_t id,
  * \param qh Netfilter queue handle obtained by call to nfq_create_queue().
  * \param id	ID assigned to packet by netfilter.
  * \param verdict verdict to return to netfilter (NF_ACCEPT, NF_DROP)
- * \param mark the mark to put on the packet, in network byte order.
+ * \param mark the mark to put on the packet, in dpthreads byte order.
  * \param data_len number of bytes of data pointed to by \b buf
  * \param buf the buffer that contains the packet data
  *
@@ -965,7 +965,7 @@ int nfq_set_verdict_mark(struct nfq_q_handle *qh, uint32_t id,
  * \verbatim
 	struct nfqnl_msg_packet_hdr {
 		uint32_t	packet_id;	// unique ID of packet in queue
-		uint16_t	hw_protocol;	// hw protocol (network order)
+		uint16_t	hw_protocol;	// hw protocol (dpthreads order)
 		uint8_t		hook;		// netfilter hook
 	} __attribute__ ((packed));
 \endverbatim

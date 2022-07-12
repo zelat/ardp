@@ -46,30 +46,26 @@ target_sources(base
         "${CMAKE_SOURCE_DIR}/base/helper.c"
         "${CMAKE_SOURCE_DIR}/base/tree.c"
         "${CMAKE_SOURCE_DIR}/base/debug.c"
-        "${CMAKE_SOURCE_DIR}/base/utils/thread.cc"
         )
 target_link_libraries(base urcu urcu-cds) #urcu-cds rt stdc++ m mnl netfilter_queue
 
 add_library(dpi "" dpi/sig/dpi_hyperscan.h)
 target_sources(dpi
         PRIVATE
-#        "${CMAKE_SOURCE_DIR}/dpi/dpi_adapter.cc"
         "${CMAKE_SOURCE_DIR}/dpi/sig/dpi_hs_search.cc"
-#        "${CMAKE_SOURCE_DIR}/dpi/dpi_hs_db.cc"
-#        "${CMAKE_SOURCE_DIR}/dpi/dpi_entry.cc"
         )
 target_link_libraries(dpi hs pcap jansson netfilter_queue)
 target_link_libraries(dpi base)
 
 
-add_library(network "" base.cc)
-target_sources(network
+add_library(dpthreads "" base.cc)
+target_sources(dpthreads
         PRIVATE
-        "${CMAKE_SOURCE_DIR}/network/ctrl.cc"
-        "${CMAKE_SOURCE_DIR}/network/dp_ctrl_handler.cc"
+        "${CMAKE_SOURCE_DIR}/dpthreads/dp_ctrl_thread.cc"
+        "${CMAKE_SOURCE_DIR}/dpthreads/domain_socket_ctrl_dp.cc"
         )
-target_link_libraries(network base)
+target_link_libraries(dpthreads base)
 
 
 add_executable(ardp main.cc)
-target_link_libraries(ardp dpi base network)
+target_link_libraries(ardp dpi base dpthreads)

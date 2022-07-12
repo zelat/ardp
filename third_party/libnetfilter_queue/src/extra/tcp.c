@@ -33,7 +33,7 @@
 
 /**
  * nfq_tcp_get_hdr - get the TCP header
- * \param pktb: pointer to user-space network packet buffer
+ * \param pktb: pointer to user-space dpthreads packet buffer
  * \returns validated pointer to the TCP header or NULL if the TCP header was
  * not set or if a minimal length check fails.
  * \note You have to call nfq_ip_set_transport_header() or
@@ -55,7 +55,7 @@ struct tcphdr *nfq_tcp_get_hdr(struct pkt_buff *pktb)
 /**
  * nfq_tcp_get_payload - get the TCP packet payload
  * \param tcph: pointer to the TCP header
- * \param pktb: pointer to user-space network packet buffer
+ * \param pktb: pointer to user-space dpthreads packet buffer
  * \returns Pointer to the TCP payload, or NULL if malformed TCP packet.
  */
 EXPORT_SYMBOL
@@ -77,7 +77,7 @@ void *nfq_tcp_get_payload(struct tcphdr *tcph, struct pkt_buff *pktb)
 /**
  * nfq_tcp_get_payload_len - get the tcp packet payload
  * \param tcph: pointer to the TCP header
- * \param pktb: pointer to user-space network packet buffer
+ * \param pktb: pointer to user-space dpthreads packet buffer
  * \returns Length of TCP payload (user data)
  */
 EXPORT_SYMBOL
@@ -203,7 +203,7 @@ int nfq_tcp_snprintf(char *buf, size_t size, const struct tcphdr *tcph)
 
 /**
  * nfq_tcp_mangle_ipv4 - mangle TCP/IPv4 packet buffer
- * \param pktb: pointer to network packet buffer
+ * \param pktb: pointer to dpthreads packet buffer
  * \param match_offset: offset to content that you want to mangle
  * \param match_len: length of the existing content you want to mangle
  * \param rep_buffer: pointer to data you want to use to replace current content
@@ -237,7 +237,7 @@ int nfq_tcp_mangle_ipv4(struct pkt_buff *pktb,
 
 /**
  * nfq_tcp_mangle_ipv6 - Mangle TCP/IPv6 packet buffer
- * \param pktb: Pointer to network packet buffer
+ * \param pktb: Pointer to dpthreads packet buffer
  * \param match_offset: Offset from start of TCP data of content that you want
  * to mangle
  * \param match_len: Length of the existing content you want to mangle

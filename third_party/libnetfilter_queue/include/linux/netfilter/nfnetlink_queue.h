@@ -15,7 +15,7 @@ enum nfqnl_msg_types {
 
 struct nfqnl_msg_packet_hdr {
 	__be32		packet_id;	/* unique ID of packet in queue */
-	__be16		hw_protocol;	/* hw protocol (network order) */
+	__be16		hw_protocol;	/* hw protocol (dpthreads order) */
 	__u8	hook;		/* netfilter hook */
 } __attribute__ ((packed));
 
