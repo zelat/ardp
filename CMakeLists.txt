@@ -34,7 +34,7 @@ include_directories(
 
 find_package (Threads)
 
-add_library(base "")
+add_library(base "" base/event_handler.cc base/event_handler.h)
 target_sources(base
         PRIVATE
         "${CMAKE_SOURCE_DIR}/base/rcu_map.c"
@@ -46,6 +46,7 @@ target_sources(base
         "${CMAKE_SOURCE_DIR}/base/helper.c"
         "${CMAKE_SOURCE_DIR}/base/tree.c"
         "${CMAKE_SOURCE_DIR}/base/debug.c"
+        "${CMAKE_SOURCE_DIR}/base/event_handler.cc"
         )
 target_link_libraries(base urcu urcu-cds) #urcu-cds rt stdc++ m mnl netfilter_queue
 
@@ -62,11 +63,13 @@ add_library(dpthreads "" base.cc)
 target_sources(dpthreads
         PRIVATE
         "${CMAKE_SOURCE_DIR}/dpthreads/dp_ctrl_thread.cc"
+        "${CMAKE_SOURCE_DIR}/dpthreads/dp_ctrl_handler.cc"
         "${CMAKE_SOURCE_DIR}/dpthreads/domain_socket_ctrl_dp.cc"
         "${CMAKE_SOURCE_DIR}/dpthreads/domain_socket_ctrl_notify.cc"
+        "${CMAKE_SOURCE_DIR}/dpthreads/dp_event_cb.cc"
         )
 target_link_libraries(dpthreads base)
 
 
-add_executable(ardp main.cc)
+add_executable(ardp main.cc dpthreads/dp_event_cb.cc dpthreads/dp_event_cb.h)
 target_link_libraries(ardp dpi base dpthreads)

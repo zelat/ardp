@@ -61,12 +61,41 @@ class DP_CTRL_Thread : public base::Singleton<DP_CTRL_Thread>{
         dpi_fqdn_hdl_t *g_fqdn_hdl;
         rcu_map_t g_ep_map;
         int dp_ctrl_handler(int fd);
+        //具体方法
+        int dp_ctrl_keep_alive(json_t *msg);
+        int dp_ctrl_add_srvc_port(json_t *msg);
+        int dp_ctrl_del_srvc_port(json_t *msg);
+        int dp_ctrl_add_port_pair(json_t *msg);
+        int dp_ctrl_del_port_pair(json_t *msg);
+        int dp_ctrl_add_tap_port(json_t *msg);
+        int dp_ctrl_del_tap_port(json_t *msg);
+        int dp_ctrl_add_nfq_port(json_t *msg);
+        int dp_ctrl_del_nfq_port(json_t *msg);
+        int dp_ctrl_add_mac(json_t *msg);
+        int dp_ctrl_del_mac(json_t *msg);
+        int dp_ctrl_cfg_mac(json_t *msg);
+        int dp_ctrl_refresh_app(json_t *msg);
+        int dp_ctrl_stats_macs(json_t *msg);
+        int dp_ctrl_stats_device(json_t *msg);
+        int dp_ctrl_counter_device(json_t *msg);
+        int dp_ctrl_count_session(json_t *msg);
+        int dp_ctrl_list_session(json_t *msg);
+        int dp_ctrl_clear_session(json_t *msg);
+        int dp_ctrl_list_meter(json_t *msg);
+        int dp_ctrl_set_debug(json_t *msg);
+        int dp_ctrl_cfg_policy(json_t *msg);
+        int dp_ctrl_del_fqdn(json_t *msg);
+        int dp_ctrl_set_fqdn(json_t *msg);
+        int dp_ctrl_cfg_internal_net(json_t *msg);
+        int dp_ctrl_cfg_specialip_net(json_t *msg);
+        int dp_ctrl_cfg_dlp(json_t *msg);
+        int dp_ctrl_del_dlp(json_t *msg);
+        int dp_ctrl_bld_dlp(json_t *msg);
+        int dp_ctrl_bld_dlp_update_ep(json_t *msg);
+        int dp_ctrl_sys_conf(json_t *msg);
     public:
         int Init();
         void Exit();
-        void dp_rate_limiter_reset(dp_rate_limter_t *rl, uint16_t dur, uint16_t dur_cnt_limit);
-        int dp_ctrl_keep_alive(json_t *msg);
-        void dp_ctrl_update_app(bool refresh);
         void dp_ctrl_loop();
     private:
         DomainSocketDPServer socketDpServer;

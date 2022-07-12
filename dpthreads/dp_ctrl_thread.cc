@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <iostream>
+#include <base/utils/singleton.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -14,11 +15,12 @@ extern "C"
 #include "base/bits.h"
 #include "base/rcu_map.h"
 #include "base/debug.h"
+#include "apis.h"
 #ifdef __cplusplus
 }
 #endif
-#include "apis.h"
 #include "dp_ctrl_thread.h"
+#include "dp_ctrl_handler.h"
 
 using namespace std;
 
@@ -39,6 +41,14 @@ namespace dpthreads {
 
         return sdbm_hash((uint8_t *)&ckey->client, 4) +
         sdbm_hash((uint8_t *)&ckey->server, 4) + ckey->port + ckey->ingress + ckey->pol_id;
+    }
+
+    //对经过dp的流量进行限速
+    static void dp_rate_limiter_reset(dp_rate_limter_t *rl, uint16_t dur, uint16_t dur_cnt_limit){
+        memset(rl, 0, sizeof(dp_rate_limter_t));
+        rl->dur = dur;
+        rl->dur_cnt_limit = dur_cnt_limit;
+        rl->start = get_current_time();
     }
 
     //初始化dp线程池
@@ -192,7 +202,6 @@ namespace dpthreads {
             ret = select(g_ctrl_fd + 1, &read_fds, nullptr, nullptr, &timeout);
             if (ret > 0 && FD_ISSET(g_ctrl_fd, &read_fds)) {
                 cout << "接收到agent发送的消息" << endl;
-                //调试代码
                 dp_ctrl_handler(g_ctrl_fd);
             }
 
@@ -225,18 +234,11 @@ namespace dpthreads {
         uint32_t *m = (uint32_t *) (buf + sizeof(DPMsgHdr));
         *m = htonl(seq_num);
 
-//        dp_ctrl_send_binary(buf, sizeof(buf));
         socketDpServer.SendBinary(buf, sizeof(buf));
         return 0;
     }
 
-    //对经过dp的流量进行限速
-    void DP_CTRL_Thread::dp_rate_limiter_reset(dp_rate_limter_t *rl, uint16_t dur, uint16_t dur_cnt_limit){
-        memset(rl, 0, sizeof(dp_rate_limter_t));
-        rl->dur = dur;
-        rl->dur_cnt_limit = dur_cnt_limit;
-        rl->start = get_current_time();
-    }
+
 }
 
 
