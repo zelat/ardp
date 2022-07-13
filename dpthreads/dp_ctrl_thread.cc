@@ -76,7 +76,7 @@ namespace dpthreads {
         }
     }
 
-    int DP_CTRL_Thread::dp_ctrl_handler(int fd) {
+    int DP_CTRL_Thread::dp_ctrl_handler() {
         int size, ret = 0;
         char ctrl_msg_buf[BUF_SIZE];
 
@@ -105,7 +105,7 @@ namespace dpthreads {
             }
             cout << json_dumps(msg, JSON_ENSURE_ASCII) << endl;
             if (strcmp(key, "ctrl_add_srvc_port") == 0) {
-                cout << "dp_ctrl_add_srvc_port" << endl;
+                ret = dp_ctrl_add_srvc_port(msg);
             } else if (strcmp(key, "ctrl_del_srvc_port") == 0) {
                 cout << "dp_ctrl_del_srvc_port" << endl;
             } else if (strcmp(key, "ctrl_add_port_pair") == 0) {
@@ -151,11 +151,11 @@ namespace dpthreads {
             } else if (strcmp(key, "ctrl_cfg_set_fqdn") == 0) {
                 cout << "dp_ctrl_set_fqdn" << endl;
             } else if (strcmp(key, "ctrl_cfg_internal_net") == 0) {
-                cout << "dp_ctrl_cfg_internal_net" << endl;
+                ret = dp_ctrl_cfg_internal_net(msg, true);
             } else if (strcmp(key, "ctrl_cfg_specip_net") == 0) {
                 cout << "dp_ctrl_cfg_specialip_net" << endl;
             } else if (strcmp(key, "ctrl_cfg_policy_addr") == 0) {
-                cout << "dp_ctrl_cfg_internal_net" << endl;
+                ret = dp_ctrl_cfg_internal_net(msg, false);
             } else if (strcmp(key, "ctrl_cfg_dlp") == 0) {
                 cout << "dp_ctrl_cfg_dlp" << endl;
             } else if (strcmp(key, "ctrl_cfg_dlpmac") == 0) {
@@ -170,7 +170,7 @@ namespace dpthreads {
         }
 
         json_decref(root);
-        return 0;
+        return ret;
     }
 
     //dp与agent通信主函数
@@ -202,7 +202,7 @@ namespace dpthreads {
             ret = select(g_ctrl_fd + 1, &read_fds, nullptr, nullptr, &timeout);
             if (ret > 0 && FD_ISSET(g_ctrl_fd, &read_fds)) {
                 cout << "接收到agent发送的消息" << endl;
-                dp_ctrl_handler(g_ctrl_fd);
+                dp_ctrl_handler();
             }
 
             clock_gettime(CLOCK_MONOTONIC, &now);
@@ -238,6 +238,39 @@ namespace dpthreads {
         return 0;
     }
 
+    //增加一个srvc端口
+    static int dp_ctrl_add_srvc_port(json_t *msg) {
+        const char *iface;
+        json_t *jumboframe_obj;
+        bool jumboframe = false;
+
+        jumboframe_obj = json_object_get(msg, "jumboframe");
+        if (jumboframe_obj != nullptr) {
+            jumboframe = json_boolean_value(jumboframe_obj);
+        }
+
+        iface = json_string_value(json_object_get(msg, "iface"));
+        printf("iface=%s, jumboframe=%d\n", iface, jumboframe);
+//        DEBUG_CTRL("iface=%s, jumboframe=%d\n", iface, jumboframe);
+//        return dp_data_add_port(iface, jumboframe, 0);
+        return 0;
+    }
+
+    //删除一个srvc端口
+    static int dp_ctrl_del_srvc_port(json_t *msg)
+    {
+        const char *iface;
+
+        iface = json_string_value(json_object_get(msg, "iface"));
+        DEBUG_CTRL("iface=%s\n", iface);
+        return 0;
+//        return dp_data_del_port(iface, 0);
+    }
+
+    static int dp_ctrl_cfg_internal_net(json_t *msg, bool internal)
+    {
+        cout << "Test dp_ctrl_cfg_internal_net" << endl;
+    }
 
 }
 
