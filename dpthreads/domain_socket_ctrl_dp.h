@@ -12,8 +12,8 @@
 namespace dpthreads{
     class DomainSocketDPServer{
     private:
-        int g_ctrl_fd;
-        struct sockaddr_un g_client_addr;
+        int ctrl_fd;
+        struct sockaddr_un client_addr;
         int Connect(const char *filename);
     public:
         int Init();

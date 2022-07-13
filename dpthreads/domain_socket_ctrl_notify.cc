@@ -18,16 +18,16 @@ extern "C" {
 namespace dpthreads {
     int DomainSocketCTRLNotify::Init() {
         const char *server_name(DP_SERVER_SOCK);
-        if((g_ctrl_notify_fd = Connect(server_name)) < 0)
+        if((ctrl_notify_fd = Connect(server_name)) < 0)
         {
             std::cout << "DomainSocketClient" <<  "Connect to server failed." << std::endl;
         }
-        return g_ctrl_notify_fd;
+        return ctrl_notify_fd;
     }
 
     void DomainSocketCTRLNotify::Exit(){
-        if(g_ctrl_notify_fd > 0){
-            close(g_ctrl_notify_fd);
+        if(ctrl_notify_fd > 0){
+            close(ctrl_notify_fd);
         }
     }
 
@@ -39,8 +39,8 @@ namespace dpthreads {
             return -1;
         }
 
-        g_ctrl_notify_addr.sun_family = AF_UNIX;
-        strlcpy(g_ctrl_notify_addr.sun_path, filename, sizeof(g_ctrl_notify_addr.sun_path));
+        ctrl_notify_addr.sun_family = AF_UNIX;
+        strlcpy(ctrl_notify_addr.sun_path, filename, sizeof(ctrl_notify_addr.sun_path));
 
         return sock;
     }
@@ -49,8 +49,8 @@ namespace dpthreads {
     int DomainSocketCTRLNotify::SendNotify(void *data, int len) {
         // Send binary message actively to ctrl path
         socklen_t addr_len = sizeof(struct sockaddr_un);
-        int sent = sendto(g_ctrl_notify_fd, data, len, 0,
-                          (struct sockaddr *) &g_ctrl_notify_addr, addr_len);
+        int sent = sendto(ctrl_notify_fd, data, len, 0,
+                          (struct sockaddr *) &ctrl_notify_addr, addr_len);
         return sent;
 
     }

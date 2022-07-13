@@ -21,6 +21,7 @@ extern "C"
 #endif
 #include "dp_ctrl_thread.h"
 #include "dp_ctrl_handler.h"
+#include "dp_ctrl_service.h"
 
 using namespace std;
 
@@ -222,6 +223,108 @@ namespace dpthreads {
         rcu_unregister_thread();
     }
 
+    int DP_CTRL_Thread::dp_ctrl_cfg_internal_net(json_t *msg, bool internal) {
+        printf("test");
+        int count;
+        int flag;
+        json_t *sa, *c_sa;
+        io_internal_subnet4_t *subnet4, *tsubnet4, *old;
+        static io_internal_subnet4_t *t_internal_subnet4 = NULL;
+        bool multiple_msg = false;
+
+        flag = json_integer_value(json_object_get(msg, "flag"));
+        sa = json_object_get(msg, "subnet_addr");
+        count = json_array_size(sa);
+
+        //给所有subnets分配一块连续的内存区
+        subnet4 = (io_internal_subnet4_t *) calloc(sizeof(io_internal_subnet4_t) + count * sizeof(io_subnet4_t), 1);
+        if (!subnet4) {
+            std::cout << "Out of memory!" << std::endl;
+        }
+
+        //将agent发送过来的json数据转化成C结构
+        subnet4->count = count;
+        for (int i = 0; i < count; i++) {
+            c_sa = json_array_get(sa, i);
+            subnet4->list[i].ip = inet_addr(json_string_value(json_object_get(c_sa, "ip")));
+            subnet4->list[i].mask = inet_addr(json_string_value(json_object_get(c_sa, "mask")));
+        }
+
+        if (flag & MSG_START) {
+            t_internal_subnet4 = subnet4;
+        } else {
+            if (!t_internal_subnet4) {
+                if (internal) {
+                    std::cout << "missed internal ip msg start!" << std::endl;
+                } else {
+                    std::cout << "missed policy addr msg start!" << std::endl;
+                }
+                return -1;
+            }
+            tsubnet4 = (io_internal_subnet4_t *) calloc(
+                    sizeof(io_internal_subnet4_t) + (t_internal_subnet4->count + count) * sizeof(io_subnet4_t), 1);
+            if (!tsubnet4) {
+                std::cout << "out of memory!!" << std::endl;
+                return -1;
+            }
+
+            memcpy(&tsubnet4->list[0], &t_internal_subnet4->list[0], sizeof(io_subnet4_t) * t_internal_subnet4->count);
+            memcpy(&tsubnet4->list[t_internal_subnet4->count], &subnet4->list[0],
+                   sizeof(io_subnet4_t) * subnet4->count);
+            tsubnet4->count = t_internal_subnet4->count + count;
+            free(subnet4);
+            free(t_internal_subnet4);
+            t_internal_subnet4 = tsubnet4;
+            multiple_msg = true;
+        }
+
+
+        if (!(flag & MSG_END)) {
+            return 0;
+        }
+
+        if (internal) {
+            old = g_internal_subnet4;
+        } else {
+            old = g_policy_addr;
+        }
+        if (multiple_msg) {
+            if (internal) {
+                g_internal_subnet4 = tsubnet4;
+            } else {
+                g_policy_addr = tsubnet4;
+            }
+        } else {
+            if (internal) {
+                g_internal_subnet4 = subnet4;
+            } else {
+                g_policy_addr = subnet4;
+            }
+        }
+
+        synchronize_rcu();
+
+        free(old);
+
+        return 0;
+    }
+
+    int DP_CTRL_Thread::dp_ctrl_add_srvc_port(json_t *msg){
+        const char *iface;
+        json_t *jumboframe_obj;
+        bool jumboframe = false;
+
+        jumboframe_obj = json_object_get(msg, "jumboframe");
+        if (jumboframe_obj != NULL) {
+            jumboframe = json_boolean_value(jumboframe_obj);
+        }
+
+        iface = json_string_value(json_object_get(msg, "iface"));
+        printf("iface=%s, jumboframe=%d\n", iface, jumboframe);
+
+        return 0;
+    }
+
     int DP_CTRL_Thread::dp_ctrl_keep_alive(json_t *msg) {
         uint32_t seq_num = json_integer_value(json_object_get(msg, "seq_num"));
         uint8_t buf[sizeof(DPMsgHdr) + sizeof(uint32_t)];
@@ -236,40 +339,6 @@ namespace dpthreads {
 
         socketDpServer.SendBinary(buf, sizeof(buf));
         return 0;
-    }
-
-    //增加一个srvc端口
-    static int dp_ctrl_add_srvc_port(json_t *msg) {
-        const char *iface;
-        json_t *jumboframe_obj;
-        bool jumboframe = false;
-
-        jumboframe_obj = json_object_get(msg, "jumboframe");
-        if (jumboframe_obj != nullptr) {
-            jumboframe = json_boolean_value(jumboframe_obj);
-        }
-
-        iface = json_string_value(json_object_get(msg, "iface"));
-        printf("iface=%s, jumboframe=%d\n", iface, jumboframe);
-//        DEBUG_CTRL("iface=%s, jumboframe=%d\n", iface, jumboframe);
-//        return dp_data_add_port(iface, jumboframe, 0);
-        return 0;
-    }
-
-    //删除一个srvc端口
-    static int dp_ctrl_del_srvc_port(json_t *msg)
-    {
-        const char *iface;
-
-        iface = json_string_value(json_object_get(msg, "iface"));
-        DEBUG_CTRL("iface=%s\n", iface);
-        return 0;
-//        return dp_data_del_port(iface, 0);
-    }
-
-    static int dp_ctrl_cfg_internal_net(json_t *msg, bool internal)
-    {
-        cout << "Test dp_ctrl_cfg_internal_net" << endl;
     }
 
 }

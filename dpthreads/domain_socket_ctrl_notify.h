@@ -11,8 +11,8 @@
 namespace dpthreads {
     class DomainSocketCTRLNotify{
     private:
-        int g_ctrl_notify_fd;
-        struct sockaddr_un g_ctrl_notify_addr;
+        int ctrl_notify_fd;
+        struct sockaddr_un ctrl_notify_addr;
         int Connect(const char *filename);
     public:
         int Init();

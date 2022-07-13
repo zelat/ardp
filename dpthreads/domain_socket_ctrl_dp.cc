@@ -22,16 +22,16 @@ extern "C" {
 namespace dpthreads {
     int DomainSocketDPServer::Init() {
         const char *server_name(DP_SERVER_SOCK);
-        if((g_ctrl_fd = Connect(server_name)) < 0)
+        if((ctrl_fd = Connect(server_name)) < 0)
         {
             std::cout << "DomainSocketClient" <<  "Connect to server failed." << std::endl;
         }
-        return g_ctrl_fd;
+        return ctrl_fd;
     }
 
     void DomainSocketDPServer::Exit(){
-        if(g_ctrl_fd > 0){
-            close(g_ctrl_fd);
+        if(ctrl_fd > 0){
+            close(ctrl_fd);
         }
     }
 
@@ -61,15 +61,15 @@ namespace dpthreads {
 
     int DomainSocketDPServer::SendBinary(void *data, int len){
         socklen_t addr_len = sizeof(struct sockaddr_un);
-        int sent = sendto(g_ctrl_fd, data, len, 0,
-                                (struct sockaddr *)&g_client_addr , addr_len);
+        int sent = sendto(ctrl_fd, data, len, 0,
+                                (struct sockaddr *)&client_addr , addr_len);
         return sent;
     }
 
     int DomainSocketDPServer::ReceiveBinary(void *data, int len){
         socklen_t addr_len = sizeof(struct sockaddr_un);;
-        int receive = recvfrom(g_ctrl_fd, data, len, 0,
-                               (struct sockaddr *)&g_client_addr, &addr_len);
+        int receive = recvfrom(ctrl_fd, data, len, 0,
+                               (struct sockaddr *)&client_addr, &addr_len);
         return receive;
     }
 }

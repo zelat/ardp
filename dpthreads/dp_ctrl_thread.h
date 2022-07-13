@@ -50,50 +50,19 @@ namespace dpthreads{
         bool ingress;
     } conn4_key_t;
 
-static int dp_ctrl_add_srvc_port(json_t *msg);
-static int dp_ctrl_del_srvc_port(json_t *msg);
-static int dp_ctrl_add_port_pair(json_t *msg);
-static int dp_ctrl_del_port_pair(json_t *msg);
-static int dp_ctrl_add_tap_port(json_t *msg);
-static int dp_ctrl_del_tap_port(json_t *msg);
-static int dp_ctrl_add_nfq_port(json_t *msg);
-static int dp_ctrl_del_nfq_port(json_t *msg);
-static int dp_ctrl_add_mac(json_t *msg);
-static int dp_ctrl_del_mac(json_t *msg);
-static int dp_ctrl_cfg_mac(json_t *msg);
-static int dp_ctrl_refresh_app(json_t *msg);
-static int dp_ctrl_stats_macs(json_t *msg);
-static int dp_ctrl_stats_device(json_t *msg);
-static int dp_ctrl_counter_device(json_t *msg);
-static int dp_ctrl_count_session(json_t *msg);
-static int dp_ctrl_list_session(json_t *msg);
-static int dp_ctrl_clear_session(json_t *msg);
-static int dp_ctrl_list_meter(json_t *msg);
-static int dp_ctrl_set_debug(json_t *msg);
-static int dp_ctrl_cfg_policy(json_t *msg);
-static int dp_ctrl_del_fqdn(json_t *msg);
-static int dp_ctrl_set_fqdn(json_t *msg);
-static int dp_ctrl_cfg_internal_net(json_t *msg, bool internal);
-static int dp_ctrl_cfg_specialip_net(json_t *msg);
-static int dp_ctrl_cfg_dlp(json_t *msg);
-static int dp_ctrl_del_dlp(json_t *msg);
-static int dp_ctrl_bld_dlp(json_t *msg);
-static int dp_ctrl_bld_dlp_update_ep(json_t *msg);
-static int dp_ctrl_sys_conf(json_t *msg);
-
 class DP_CTRL_Thread : public base::Singleton<DP_CTRL_Thread>{
     private:
+        int g_ctrl_fd;
+        int g_ctrl_notify_fd;
+        io_internal_subnet4_t *g_internal_subnet4;
+        io_internal_subnet4_t *g_policy_addr;
         int g_running = true;                                   //保持监听状态
         int g_dp_threads;                                       //agent与DP连接的线程数
         dp_thread_data_t g_dp_thread_data[MAX_DP_THREADS];      //线程池
-        int g_ctrl_fd;
-        int g_ctrl_notify_fd;
         uint8_t g_notify_msg[DP_MSG_SIZE];
         dpi_fqdn_hdl_t *g_fqdn_hdl;
         rcu_map_t g_ep_map;
         int dp_ctrl_handler();
-        //具体方法
-        int dp_ctrl_keep_alive(json_t *msg);
     public:
         int Init();
         void Exit();
@@ -101,6 +70,10 @@ class DP_CTRL_Thread : public base::Singleton<DP_CTRL_Thread>{
     private:
         DomainSocketDPServer socketDpServer;
         DomainSocketCTRLNotify socketCtrlNotify;
+    protected:
+        int dp_ctrl_cfg_internal_net(json_t *msg, bool internal);
+        int dp_ctrl_add_srvc_port(json_t *msg);
+        int dp_ctrl_keep_alive(json_t *msg);
     };
 }
 
