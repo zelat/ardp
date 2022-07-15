@@ -59,7 +59,7 @@ target_link_libraries(dpi hs pcap jansson netfilter_queue)
 target_link_libraries(dpi base)
 
 
-add_library(dpthreads "" base.cc)
+add_library(dpthreads "" base.cc dpthreads/dp_pkt.cc)
 target_sources(dpthreads
         PRIVATE
         "${CMAKE_SOURCE_DIR}/dpthreads/dp_ctrl_thread.cc"
@@ -67,6 +67,8 @@ target_sources(dpthreads
         "${CMAKE_SOURCE_DIR}/dpthreads/domain_socket_ctrl_dp.cc"
         "${CMAKE_SOURCE_DIR}/dpthreads/domain_socket_ctrl_notify.cc"
         "${CMAKE_SOURCE_DIR}/dpthreads/dp_event_cb.cc"
+        "${CMAKE_SOURCE_DIR}/dpthreads/dp_pkt.cc"
+        "${CMAKE_SOURCE_DIR}/dpthreads/dp_ring.cc"
         )
 target_link_libraries(dpthreads base)
 

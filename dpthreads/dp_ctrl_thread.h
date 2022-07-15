@@ -52,8 +52,8 @@ namespace dpthreads{
 
 class DP_CTRL_Thread : public base::Singleton<DP_CTRL_Thread>{
     private:
-        int g_ctrl_fd;
-        int g_ctrl_notify_fd;
+        int g_ctrl_fd;                                          //agent与ardp的socket句柄文件
+        int g_ctrl_notify_fd;                                   //ctrl发送变更消息的socket句柄文件
         io_internal_subnet4_t *g_internal_subnet4;
         io_internal_subnet4_t *g_policy_addr;
         int g_running = true;                                   //保持监听状态

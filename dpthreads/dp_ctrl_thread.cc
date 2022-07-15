@@ -21,7 +21,6 @@ extern "C"
 #endif
 #include "dp_ctrl_thread.h"
 #include "dp_ctrl_handler.h"
-#include "dp_ctrl_service.h"
 
 using namespace std;
 
@@ -309,22 +308,6 @@ namespace dpthreads {
         return 0;
     }
 
-    int DP_CTRL_Thread::dp_ctrl_add_srvc_port(json_t *msg){
-        const char *iface;
-        json_t *jumboframe_obj;
-        bool jumboframe = false;
-
-        jumboframe_obj = json_object_get(msg, "jumboframe");
-        if (jumboframe_obj != NULL) {
-            jumboframe = json_boolean_value(jumboframe_obj);
-        }
-
-        iface = json_string_value(json_object_get(msg, "iface"));
-        printf("iface=%s, jumboframe=%d\n", iface, jumboframe);
-
-        return 0;
-    }
-
     int DP_CTRL_Thread::dp_ctrl_keep_alive(json_t *msg) {
         uint32_t seq_num = json_integer_value(json_object_get(msg, "seq_num"));
         uint8_t buf[sizeof(DPMsgHdr) + sizeof(uint32_t)];
@@ -341,6 +324,22 @@ namespace dpthreads {
         return 0;
     }
 
+    //增加一个serivce port
+    int DP_CTRL_Thread::dp_ctrl_add_srvc_port(json_t *msg){
+        const char *iface;
+        json_t *jumboframe_obj;
+        bool jumboframe = false;
+
+        jumboframe_obj = json_object_get(msg, "jumboframe");
+        if (jumboframe_obj != NULL) {
+            jumboframe = json_boolean_value(jumboframe_obj);
+        }
+
+        iface = json_string_value(json_object_get(msg, "iface"));
+        printf("iface=%s, jumboframe=%d\n", iface, jumboframe);
+
+        return 0;
+    }
 }
 
 
