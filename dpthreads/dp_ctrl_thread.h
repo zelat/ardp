@@ -1,5 +1,5 @@
 //
-// Created by Administrator on 2022/7/5.
+// Created by tanchao on 2022/7/5.
 //
 
 #ifndef ARDP_DP_CTRL_THREAD_H
@@ -8,6 +8,7 @@
 #include <ctime>
 #include <base/utils/singleton.h>
 #include "base.h"
+#include "apis.h"
 #include "base/config/config.h"
 #include "domain_socket_ctrl_dp.h"
 #include "domain_socket_ctrl_notify.h"

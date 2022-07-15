@@ -47,7 +47,7 @@ target_sources(base
         "${CMAKE_SOURCE_DIR}/base/debug.c"
         "${CMAKE_SOURCE_DIR}/base/event_handler.cc"
         )
-target_link_libraries(base urcu urcu-cds) #urcu-cds rt stdc++ m mnl netfilter_queue
+target_link_libraries(base urcu urcu-cds)
 
 add_library(dpi "" dpi/sig/dpi_hyperscan.h)
 target_sources(dpi
@@ -58,7 +58,7 @@ target_link_libraries(dpi hs pcap jansson netfilter_queue)
 target_link_libraries(dpi base)
 
 
-add_library(dpthreads "" base.cc dpthreads/dp_pkt.cc)
+add_library(dpthreads "" base.cc)
 target_sources(dpthreads
         PRIVATE
         "${CMAKE_SOURCE_DIR}/dpthreads/dp_ctrl_thread.cc"
