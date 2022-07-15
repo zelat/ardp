@@ -6,7 +6,7 @@
 #include <arpa/inet.h>
 #include <base.h>
 
-#include "utils/helper.h"
+#include "helper.h"
 
 /*
  * Copy src to string dst of size siz.  At most siz-1 characters

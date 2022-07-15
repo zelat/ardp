@@ -12,11 +12,11 @@
 
 namespace dpthreads {
 
-    static int dp_ring_v1(int fd, const char *iface, dp_ring_t *ring, bool tap, bool jumboframe, uint blocks, uint batch){
-        int enable = 1;
-        //丢弃畸形数据包
-        setsockopt(fd, SOL_PACKET, PACKET_LOSS, &enable, sizeof(enable));
-    }
+//    static int dp_ring_v1(int fd, const char *iface, dp_ring_t *ring, bool tap, bool jumboframe, uint blocks, uint batch){
+//        int enable = 1;
+//        //丢弃畸形数据包
+//        setsockopt(fd, SOL_PACKET, PACKET_LOSS, &enable, sizeof(enable));
+//    }
 
     static int dp_ring_bind(int fd, const char *iface){
         struct sockaddr_ll ll;                                /*数据链路层的头信息结构体*/
@@ -35,29 +35,29 @@ namespace dpthreads {
      * socket(AF_INET, SOCK_RAW, IPPROTO_TCP|IPPROTO_UDP|IPPROTO_ICMP)发送接收ip数据包，不能用IPPROTO_IP，因为如果是用了IPPROTO_IP，系统根本就不知道该用什么协议。
      * socket(PF_PACKET, SOCK_RAW, htons(ETH_P_IP|ETH_P_ARP|ETH_P_ALL))发送接收以太网数据帧
      * */
-    int dp_open_socket(dp_context_t *ctx, const char *iface, bool tap, bool jumboframe, uint blocks, uint batch){
-        //AF_PACKET 与 SOCK_RAW 套接字一起使用接收包含14字节以太网报头的数据报
-        //建立链路层socket
-        int fd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-        if (fd < 0){
-            printf("fail to open socket.\n");
-            return -1;
-        }
-
-        int err = 0;
-        err = dp_ring_v1(fd, iface, &ctx->ring, tap, jumboframe, blocks, batch);
-        if (err < 0) {
-            close(fd);
-            return -1;
-        }
-
-        err = dp_ring_bind(fd, iface);
-        if (err < 0) {
-            printf("fail to bind socket.\n");
-            dp_close_socket(ctx);
-            return -1;
-        }
-
-        return fd;
-    }
+//    int dp_open_socket(dp_context_t *ctx, const char *iface, bool tap, bool jumboframe, uint blocks, uint batch){
+//        //AF_PACKET 与 SOCK_RAW 套接字一起使用接收包含14字节以太网报头的数据报
+//        //建立链路层socket
+//        int fd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+//        if (fd < 0){
+//            printf("fail to open socket.\n");
+//            return -1;
+//        }
+//
+//        int err = 0;
+//        err = dp_ring_v1(fd, iface, &ctx->ring, tap, jumboframe, blocks, batch);
+//        if (err < 0) {
+//            close(fd);
+//            return -1;
+//        }
+//
+//        err = dp_ring_bind(fd, iface);
+//        if (err < 0) {
+//            printf("fail to bind socket.\n");
+//            dp_close_socket(ctx);
+//            return -1;
+//        }
+//
+//        return fd;
+//    }
 }

@@ -21,13 +21,42 @@
 #include "internal.h"
 
 /**
- * \defgroup pktbuff User-space dpthreads packet buffer
+ * \defgroup pktbuff User-space network packet buffer
  *
- * This library provides the user-space dpthreads packet buffer. This abstraction
- * is strongly inspired by Linux kernel dpthreads buffer, the so-called sk_buff.
+ * This library provides the user-space network packet buffer. This abstraction
+ * is strongly inspired by Linux kernel network buffer, the so-called sk_buff.
  *
  * @{
  */
+
+static int __pktb_setup(int family, struct pkt_buff *pktb)
+{
+	struct ethhdr *ethhdr;
+
+	switch (family) {
+	case AF_INET:
+	case AF_INET6:
+		pktb->network_header = pktb->data;
+		break;
+	case AF_BRIDGE:
+		ethhdr = (struct ethhdr *)pktb->data;
+		pktb->mac_header = pktb->data;
+
+		switch(ethhdr->h_proto) {
+		case ETH_P_IP:
+		case ETH_P_IPV6:
+			pktb->network_header = pktb->data + ETH_HLEN;
+			break;
+		default:
+			/* This protocol is unsupported. */
+			errno = EPROTONOSUPPORT;
+			return -1;
+		}
+		break;
+	}
+
+	return 0;
+}
 
 /**
  * pktb_alloc - allocate a new packet buffer
@@ -52,7 +81,6 @@ EXPORT_SYMBOL
 struct pkt_buff *pktb_alloc(int family, void *data, size_t len, size_t extra)
 {
 	struct pkt_buff *pktb;
-	struct ethhdr *ethhdr;
 	void *pkt_data;
 
 	pktb = calloc(1, sizeof(struct pkt_buff) + len + extra);
@@ -68,35 +96,18 @@ struct pkt_buff *pktb_alloc(int family, void *data, size_t len, size_t extra)
 
 	pktb->data = pkt_data;
 
-	switch(family) {
-	case AF_INET:
-	case AF_INET6:
-		pktb->network_header = pktb->data;
-		break;
-	case AF_BRIDGE:
-		ethhdr = (struct ethhdr *)pktb->data;
-		pktb->mac_header = pktb->data;
-
-		switch(ethhdr->h_proto) {
-		case ETH_P_IP:
-		case ETH_P_IPV6:
-			pktb->network_header = pktb->data + ETH_HLEN;
-			break;
-		default:
-			/* This protocol is unsupported. */
-			errno = EPROTONOSUPPORT;
-			free(pktb);
-			return NULL;
-		}
-		break;
+	if (__pktb_setup(family, pktb) < 0) {
+		free(pktb);
+		return NULL;
 	}
+
 	return pktb;
 }
 
 /**
- * pktb_data - get pointer to dpthreads packet
+ * pktb_data - get pointer to network packet
  * \param pktb Pointer to userspace packet buffer
- * \return Pointer to start of dpthreads packet data within __pktb__
+ * \return Pointer to start of network packet data within __pktb__
  * \par
  * It is appropriate to use _pktb_data_ as the second argument of
  * nfq_nlmsg_verdict_put_pkt()

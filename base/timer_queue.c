@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "utils/timer_queue.h"
+#include "timer_queue.h"
 
 void timer_queue_init(timer_queue_t *q, uint32_t timeout)
 {

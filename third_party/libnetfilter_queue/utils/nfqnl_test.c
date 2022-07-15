@@ -18,6 +18,32 @@ static uint32_t print_pkt (struct nfq_data *tb)
 	uint32_t mark, ifi, uid, gid;
 	int ret;
 	unsigned char *data, *secdata;
+	char pktbuf[1024*10];
+	int flags = 0;
+	int retxml;
+	uint32_t skbinfo;
+	//uint32_t orig_len = 0;
+
+	flags = flags | NFQ_XML_ALL;
+	if ((retxml=nfq_snprintf_xml(pktbuf, 1024*10, tb, flags)) > 0 ) {
+		printf("pktbuf(%s)\n",pktbuf);
+	}
+
+	skbinfo = nfq_get_skbinfo(tb);
+	if (skbinfo & NFQA_SKB_GSO)
+		printf("GSO ");
+
+	/*
+	 * ip/tcp checksums are not yet valid, e.g. due to GRO/GSO.
+	 * The application should behave as if the checksums are correct.
+	 *
+	 * If these packets are later forwarded/sent out, the checksums will
+	 * be corrected by kernel/hardware.
+	 */
+	if (skbinfo & NFQA_SKB_CSUMNOTREADY)
+		printf(" checksum not ready");
+	if (skbinfo & NFQA_SKB_CSUM_NOTVERIFIED)
+		printf(" checksum not verified");
 
 	ph = nfq_get_msg_packet_hdr(tb);
 	if (ph) {
@@ -68,6 +94,9 @@ static uint32_t print_pkt (struct nfq_data *tb)
 	ret = nfq_get_payload(tb, &data);
 	if (ret >= 0)
 		printf("payload_len=%d ", ret);
+
+	//orig_len = nfq_get_caplen(tb);
+	//printf("orig_len(%d), payload_len(%d)", orig_len, ret);
 
 	fputc('\n', stdout);
 
@@ -130,6 +159,18 @@ int main(int argc, char **argv)
 	if (nfq_set_mode(qh, NFQNL_COPY_PACKET, 0xffff) < 0) {
 		fprintf(stderr, "can't set packet_copy mode\n");
 		exit(1);
+	}
+
+	printf("setting flags to fail open\n");
+	if (nfq_set_queue_flags(qh, NFQA_CFG_F_FAIL_OPEN, NFQA_CFG_F_FAIL_OPEN)) {
+		fprintf(stderr, "This kernel version does not allow to "
+				"set fail oepn.\n");
+	}
+
+	printf("setting flags to gso\n");
+	if (nfq_set_queue_flags(qh, NFQA_CFG_F_GSO, NFQA_CFG_F_GSO)) {
+		fprintf(stderr, "This kernel version does not allow to "
+				"set gso.\n");
 	}
 
 	printf("setting flags to request UID and GID\n");

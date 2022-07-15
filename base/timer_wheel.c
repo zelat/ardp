@@ -2,8 +2,8 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "utils/timer_wheel.h"
-#include "utils/helper.h"
+#include "timer_wheel.h"
+#include "helper.h"
 
 
 void timer_wheel_init(timer_wheel_t *w)

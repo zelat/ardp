@@ -1,7 +1,7 @@
 #ifndef INTERNAL_H
 #define INTERNAL_H 1
 
-#include "base/config/config.h"
+#include "config.h"
 #include <stdint.h>
 #include <stdbool.h>
 #ifdef HAVE_VISIBILITY_HIDDEN
