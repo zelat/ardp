@@ -27,6 +27,9 @@ namespace dpthreads {
 
     #define MAX_TSO_SIZE 65536
 
+    int g_stats_slot = 0;
+    static uint8_t g_tso_packet[MAX_TSO_SIZE];
+
     static void dp_tx_flush(dp_context_t *ctx, int limit){
         if (ctx->tx_pending >= limit && ctx->tx_pending > 0) {
             send(ctx->fd, NULL, 0, 0);
@@ -61,19 +64,29 @@ namespace dpthreads {
 
             count++;
 
-            if (unlikely(tp->tp_len != tp->tp_snaplen)){
-                // 判断是否
-                if (tp->tp_status & TP_STATUS_COPY){
+            if (unlikely(tp->tp_len != tp->tp_snaplen)) {
+                // TP_STATUS_COPY这个标志表明帧(以及相关的元信息)已经被截断，因为它比tp_frame_size大
+                if (tp->tp_status & TP_STATUS_COPY) {
                     if (tp->tp_len <= MAX_TSO_SIZE) {
                         int len = recv(ctx->fd, g_tso_packet, MAX_TSO_SIZE, 0);
+                        printf("Recv large frame: len=%u from %s\n", len, ctx->name);
+                        context.large_frame = true;
+                        dpi_recv_packet(&context, g_tso_packet, len);
+                    } else {
+                        recv(ctx->fd, g_tso_packet, 1,0);
+                        printf("Discard: len=%u snap=%u from %s\n", tp->tp_len, tp->tp_snaplen, ctx->name);
                     }
+                } else {
+                    printf("Discard: len=%u snap=%u from %s\n", tp->tp_len, tp->tp_snaplen, ctx->name);
                 }
+            } else {
+                context.large_frame = false;
+                dpi_recv_packet(&context, (uint8_t *)tp + tp->tp_mac, tp->tp_snaplen);
             }
-
         }
     }
 
-    /* 循环缓冲区(ring)的映射和使用 */
+    /* 环状缓冲区(ring)的映射和使用 */
     static int dp_ring(int fd, const char *iface, dp_ring_t *ring, bool tap, bool jumboframe, uint blocks, uint batch){
         int enable = 1;
         //丢弃畸形数据包
@@ -87,12 +100,12 @@ namespace dpthreads {
             req->tp_block_size = JUMBO_BLOCK_SIZE;
             req->tp_frame_size = JUMBO_FRAME_SIZE;
         } else {
-            req->tp_block_size = BLOCK_SIZE;
-            req->tp_frame_size = FRAME_SIZE;
+            req->tp_block_size = BLOCK_SIZE;                                              /* Minimal size of contiguous block */
+            req->tp_frame_size = FRAME_SIZE;                                              /* Size of frame */
         }
-        req->tp_block_nr = blocks;
+        req->tp_block_nr = blocks;                                                        /* Number of blocks */
         //内存块数量tp_block_nr乘以每个内存块容纳的数据帧数目，应该等于数据包的总数tp_frame_nr
-        req->tp_frame_nr = (req->tp_block_size * blocks) / req->tp_frame_size;
+        req->tp_frame_nr = (req->tp_block_size * blocks) / req->tp_frame_size;            /* Total number of frames */
         /* calculate memory to mmap in the kernel */
         ring->size = req->tp_block_size * blocks;
         if (!tap) {
@@ -138,8 +151,6 @@ namespace dpthreads {
         return bind(fd, (struct sockaddr *)&ll, sizeof(ll));
     }
 
-
-
     void dp_close_socket(dp_context_t *ctx){
         if (ctx->nfq) {
             if (ctx->nfq_ctx.nfq_q_hdl) {
@@ -168,23 +179,18 @@ namespace dpthreads {
             printf("fail to open socket.\n");
             return -1;
         }
-
         int err = 0;
         err = dp_ring(fd, iface, &ctx->ring, tap, jumboframe, blocks, batch);
         if (err < 0) {
             close(fd);
             return -1;
         }
-
         err = dp_ring_bind(fd, iface);
         if (err < 0) {
             printf("fail to bind socket.\n");
             dp_close_socket(ctx);
             return -1;
         }
-
         return fd;
     }
-
-
 }
