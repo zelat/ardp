@@ -13,8 +13,9 @@
 
 #include "dp_types.h"
 #include "apis.h"
-#include "base/helper.h"
 #include "base.h"
+#include "base/helper.h"
+#include "libnetfilter_queue/libnetfilter_queue.h"
 
 namespace dpthreads {
 
@@ -27,7 +28,7 @@ namespace dpthreads {
 
     #define MAX_TSO_SIZE 65536
 
-    int g_stats_slot = 0;
+    extern int g_stats_slot;
     static uint8_t g_tso_packet[MAX_TSO_SIZE];
 
     static void dp_tx_flush(dp_context_t *ctx, int limit){
@@ -36,6 +37,44 @@ namespace dpthreads {
             ctx->stats.tx += ctx->tx_pending;
             ctx->tx_pending = 0;
         }
+    }
+
+    static int dp_tx(dp_context_t *ctx, uint8_t *pkt, int len, bool large_frame){
+        dp_ring_t *ring =&ctx->ring;
+        struct tpacket_hdr *tp;
+        int ret = len;
+
+        if (large_frame) {
+            dp_tx_flush(ctx, 0);
+
+            ret = send(ctx->fd, pkt, len, 0);
+            printf("Sent large frame: len=%u to %s\n", len, ctx->name);
+            return ret;
+        }
+
+        tp = (struct tpacket_hdr *)(ring->tx_map + ring->tx_offset);
+        if ((tp->tp_status & (TP_STATUS_SEND_REQUEST | TP_STATUS_SENDING)) == 0){
+            uint8_t *data = (uint8_t *)tp + TPACKET_HDRLEN - sizeof(struct sockaddr_ll);
+
+            memcpy(data, pkt, len);
+            tp->tp_len = len;
+            tp->tp_status = TP_STATUS_SEND_REQUEST;
+            ctx->tx_pending ++;
+
+            if (!ctx->tap && ctx->jumboframe) {
+                ring->tx_offset = (ring->tx_offset + JUMBO_FRAME_SIZE) & (ring->size - 1);
+            } else {
+                ring->tx_offset = (ring->tx_offset + FRAME_SIZE) & (ring->size - 1);
+            }
+
+            dp_tx_flush(ctx, DEFAULT_PENDING_LIMIT);
+        } else {
+            printf("TX queue full, status=0x%x Drop!\n", tp->tp_status);
+
+            ctx->stats.tx_drops ++;
+            ret = -1;
+        }
+        return ret;
     }
 
     static int dp_rx(dp_context_t *ctx, uint32_t tick){
@@ -86,6 +125,22 @@ namespace dpthreads {
         }
     }
 
+    static void dp_stats(int fd, dp_stats_t *stats)
+    {
+        struct tpacket_stats s;
+        socklen_t len;
+        int err;
+
+        len = sizeof(s);
+        err = getsockopt(fd, SOL_PACKET, PACKET_STATISTICS, &s, &len);
+        if (err < 0) {
+            return;
+        }
+
+        stats->rx += s.tp_packets;
+        stats->rx_drops += s.tp_drops;
+    }
+
     /* 环状缓冲区(ring)的映射和使用 */
     static int dp_ring(int fd, const char *iface, dp_ring_t *ring, bool tap, bool jumboframe, uint blocks, uint batch){
         int enable = 1;
@@ -132,8 +187,8 @@ namespace dpthreads {
 
         ring->tx_map = ring->rx_map + ring->size;
         ring->rx = dp_rx;
-//        ring->tx = dp_tx;
-//        ring->stats = dp_stats;
+        ring->tx = dp_tx;
+        ring->stats = dp_stats;
         return fd;
     }
 
@@ -151,21 +206,21 @@ namespace dpthreads {
         return bind(fd, (struct sockaddr *)&ll, sizeof(ll));
     }
 
-//    void dp_close_socket(dp_context_t *ctx){
-//        if (ctx->nfq) {
-//            if (ctx->nfq_ctx.nfq_q_hdl) {
-//                nfq_destroy_queue(ctx->nfq_ctx.nfq_q_hdl);
-//                ctx->nfq_ctx.nfq_q_hdl = NULL;
-//            }
-//            if (ctx->nfq_ctx.nfq_hdl) {
-//                nfq_close(ctx->nfq_ctx.nfq_hdl);
-//                ctx->nfq_ctx.nfq_hdl = NULL;
-//            }
-//        } else {
-//            munmap(ctx->ring.rx_map, ctx->ring.map_size);
-//            close(ctx->fd);
-//        }
-//    }
+    void dp_close_socket(dp_context_t *ctx){
+        if (ctx->nfq) {
+            if (ctx->nfq_ctx.nfq_q_hdl) {
+                nfq_destroy_queue(ctx->nfq_ctx.nfq_q_hdl);
+                ctx->nfq_ctx.nfq_q_hdl = nullptr;
+            }
+            if (ctx->nfq_ctx.nfq_hdl) {
+                nfq_close(ctx->nfq_ctx.nfq_hdl);
+                ctx->nfq_ctx.nfq_hdl = nullptr;
+            }
+        } else {
+            munmap(ctx->ring.rx_map, ctx->ring.map_size);
+            close(ctx->fd);
+        }
+    }
 
     /* 接收本机网卡下的数据帧或者数据包，常用来监听和分析网络流量，常见的方式有以下2种
      * socket(AF_INET, SOCK_RAW, IPPROTO_TCP|IPPROTO_UDP|IPPROTO_ICMP)发送接收ip数据包，不能用IPPROTO_IP，因为如果是用了IPPROTO_IP，系统根本就不知道该用什么协议。
@@ -188,7 +243,7 @@ namespace dpthreads {
         err = dp_ring_bind(fd, iface);
         if (err < 0) {
             printf("fail to bind socket.\n");
-//            dp_close_socket(ctx);
+            dp_close_socket(ctx);
             return -1;
         }
         return fd;

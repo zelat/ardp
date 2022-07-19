@@ -22,6 +22,7 @@ __thread int THREAD_ID;           //线程局部存储
 __thread char THREAD_NAME[32];
 
 char * g_in_iface;       //网络设备名字
+int g_stats_slot = 0;
 io_config_t g_config;
 rcu_map_t g_ep_map;
 io_callback_t g_callback;
