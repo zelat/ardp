@@ -81,7 +81,7 @@ namespace dpthreads {
                 break;
             }
             ctx->peer_ctx = ctx;
-            th_ctx_inline(thr_id) = ctx;
+            th_ctx_inline(thr_id) = (dp_context_ *)ctx;
 
             strlcpy(ctx->name, iface, sizeof(ctx->name));
             cds_hlist_add_head(&ctx->link, &th_ctx_list(thr_id));
