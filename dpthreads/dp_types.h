@@ -7,6 +7,7 @@
 
 #include <sys/epoll.h>
 #include <net/ethernet.h>
+#include <linux/if_packet.h>
 #include "urcu/hlist.h"
 
 #ifdef __cplusplus

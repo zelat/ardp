@@ -22,7 +22,7 @@ namespace dpthreads {
     /* 普通帧 */
     #define FRAME_SIZE (1024 * 2)
     #define BLOCK_SIZE (FRAME_SIZE * 4)
-    /* 巨型帧 */
+    /* 支持巨型帧 */
     #define JUMBO_FRAME_SIZE (1024*16)
     #define JUMBO_BLOCK_SIZE (JUMBO_FRAME_SIZE * 2)
 
@@ -198,7 +198,7 @@ namespace dpthreads {
         memset(&ll, 0, sizeof(ll));
         ll.sll_family = PF_PACKET;                            /*操作链路层的数据*/
         ll.sll_protocol = htons(ETH_P_ALL);                   /*上层协议;16位的主机字节序转换到网络字节序*/
-        ll.sll_ifindex = if_nametoindex(iface);        /*接口类型; if_nametoindex检查网卡名称是否有效*/
+        ll.sll_ifindex = if_nametoindex(iface);               /*接口类型; if_nametoindex检查网卡名称是否有效*/
         ll.sll_hatype = 0;                                    /*报文头类型*/
         ll.sll_pkttype = 0;                                   /*包类型*/
         ll.sll_halen = 0;                                     /*地址长度*/
