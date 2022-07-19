@@ -132,8 +132,8 @@ namespace dpthreads {
 
         ring->tx_map = ring->rx_map + ring->size;
         ring->rx = dp_rx;
-        ring->tx = dp_tx;
-        ring->stats = dp_stats;
+//        ring->tx = dp_tx;
+//        ring->stats = dp_stats;
         return fd;
     }
 
@@ -151,21 +151,21 @@ namespace dpthreads {
         return bind(fd, (struct sockaddr *)&ll, sizeof(ll));
     }
 
-    void dp_close_socket(dp_context_t *ctx){
-        if (ctx->nfq) {
-            if (ctx->nfq_ctx.nfq_q_hdl) {
-                nfq_destroy_queue(ctx->nfq_ctx.nfq_q_hdl);
-                ctx->nfq_ctx.nfq_q_hdl = NULL;
-            }
-            if (ctx->nfq_ctx.nfq_hdl) {
-                nfq_close(ctx->nfq_ctx.nfq_hdl);
-                ctx->nfq_ctx.nfq_hdl = NULL;
-            }
-        } else {
-            munmap(ctx->ring.rx_map, ctx->ring.map_size);
-            close(ctx->fd);
-        }
-    }
+//    void dp_close_socket(dp_context_t *ctx){
+//        if (ctx->nfq) {
+//            if (ctx->nfq_ctx.nfq_q_hdl) {
+//                nfq_destroy_queue(ctx->nfq_ctx.nfq_q_hdl);
+//                ctx->nfq_ctx.nfq_q_hdl = NULL;
+//            }
+//            if (ctx->nfq_ctx.nfq_hdl) {
+//                nfq_close(ctx->nfq_ctx.nfq_hdl);
+//                ctx->nfq_ctx.nfq_hdl = NULL;
+//            }
+//        } else {
+//            munmap(ctx->ring.rx_map, ctx->ring.map_size);
+//            close(ctx->fd);
+//        }
+//    }
 
     /* 接收本机网卡下的数据帧或者数据包，常用来监听和分析网络流量，常见的方式有以下2种
      * socket(AF_INET, SOCK_RAW, IPPROTO_TCP|IPPROTO_UDP|IPPROTO_ICMP)发送接收ip数据包，不能用IPPROTO_IP，因为如果是用了IPPROTO_IP，系统根本就不知道该用什么协议。
@@ -188,7 +188,7 @@ namespace dpthreads {
         err = dp_ring_bind(fd, iface);
         if (err < 0) {
             printf("fail to bind socket.\n");
-            dp_close_socket(ctx);
+//            dp_close_socket(ctx);
             return -1;
         }
         return fd;
