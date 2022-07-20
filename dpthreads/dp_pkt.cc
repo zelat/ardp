@@ -3,7 +3,14 @@
 //
 
 #include <base/config/config.h>
-#include <base/helper.h>
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+#include "base/helper.h"
+#ifdef __cplusplus
+}
+#endif
 #include "dp_ctrl_thread.h"
 #include "dp_types.h"
 #include "urcu/hlist.h"
@@ -58,7 +65,7 @@ namespace dpthreads {
         return ctx;
     }
 
-    int ardp_add_port(const char * iface, bool jumboframe, int thr_id){
+    int dp_data_add_port(const char * iface, bool jumboframe, int thr_id){
         int ret = 0;
         dp_context_t *ctx;
 

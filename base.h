@@ -42,5 +42,6 @@ typedef struct rate_limiter_ {
     uint32_t total_pass;
 } dp_rate_limter_t;
 
+extern int g_stats_slot;
 time_t get_current_time();
 #endif //DPI_TEST_BASE_H

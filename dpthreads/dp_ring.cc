@@ -25,10 +25,8 @@ namespace dpthreads {
     /* 支持巨型帧 */
     #define JUMBO_FRAME_SIZE (1024*16)
     #define JUMBO_BLOCK_SIZE (JUMBO_FRAME_SIZE * 2)
-
     #define MAX_TSO_SIZE 65536
 
-    extern int g_stats_slot;
     static uint8_t g_tso_packet[MAX_TSO_SIZE];
 
     static void dp_tx_flush(dp_context_t *ctx, int limit){

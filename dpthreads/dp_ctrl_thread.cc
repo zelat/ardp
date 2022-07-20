@@ -26,6 +26,8 @@ using namespace std;
 
 namespace dpthreads {
 
+    extern int dp_data_add_port(const char *iface, bool jumboframe, int thr_id);
+
     static int conn4_match(struct cds_lfht_node *ht_node, const void *key) {
         conn_node_t *cnode = STRUCT_OF(ht_node, conn_node_t, node);
         DPMsgConnect *conn = &cnode->conn;
@@ -338,7 +340,7 @@ namespace dpthreads {
         iface = json_string_value(json_object_get(msg, "iface"));
         printf("iface=%s, jumboframe=%d\n", iface, jumboframe);
 
-        return 0;
+        return dp_data_add_port(iface, jumboframe, 0);
     }
 }
 

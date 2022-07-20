@@ -52,6 +52,7 @@ target_link_libraries(base urcu urcu-cds)
 add_library(dpi "" dpi/sig/dpi_hyperscan.h)
 target_sources(dpi
         PRIVATE
+        "${CMAKE_SOURCE_DIR}/dpi/dpi_entry.cc"
         "${CMAKE_SOURCE_DIR}/dpi/sig/dpi_hs_search.cc"
         )
 target_link_libraries(dpi hs pcap jansson netfilter_queue)
