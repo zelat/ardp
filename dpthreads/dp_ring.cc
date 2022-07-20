@@ -16,20 +16,11 @@
 #include "base.h"
 #include "base/helper.h"
 #include "libnetfilter_queue/libnetfilter_queue.h"
+#include "dp_ring.h"
+
 
 namespace dpthreads {
-
-    /* 普通帧 */
-    #define FRAME_SIZE (1024 * 2)
-    #define BLOCK_SIZE (FRAME_SIZE * 4)
-    /* 支持巨型帧 */
-    #define JUMBO_FRAME_SIZE (1024*16)
-    #define JUMBO_BLOCK_SIZE (JUMBO_FRAME_SIZE * 2)
-    #define MAX_TSO_SIZE 65536
-
-    static uint8_t g_tso_packet[MAX_TSO_SIZE];
-
-    static void dp_tx_flush(dp_context_t *ctx, int limit){
+    void DP_Ring::dp_tx_flush(dp_context_t *ctx, int limit){
         if (ctx->tx_pending >= limit && ctx->tx_pending > 0) {
             send(ctx->fd, NULL, 0, 0);
             ctx->stats.tx += ctx->tx_pending;
@@ -37,7 +28,7 @@ namespace dpthreads {
         }
     }
 
-    static int dp_tx(dp_context_t *ctx, uint8_t *pkt, int len, bool large_frame){
+    int DP_Ring::dp_tx(dp_context_t *ctx, uint8_t *pkt, int len, bool large_frame){
         dp_ring_t *ring =&ctx->ring;
         struct tpacket_hdr *tp;
         int ret = len;
@@ -75,7 +66,7 @@ namespace dpthreads {
         return ret;
     }
 
-    static int dp_rx(dp_context_t *ctx, uint32_t tick){
+     int DP_Ring::dp_rx(dp_context_t *ctx, uint32_t tick){
         io_ctx_t context;
         uint32_t count = 0;
         dp_ring_t *ring = &ctx->ring;
@@ -123,7 +114,7 @@ namespace dpthreads {
         }
     }
 
-    static void dp_stats(int fd, dp_stats_t *stats)
+    void DP_Ring::dp_stats(int fd, dp_stats_t *stats)
     {
         struct tpacket_stats s;
         socklen_t len;
@@ -140,7 +131,7 @@ namespace dpthreads {
     }
 
     /* 环状缓冲区(ring)的映射和使用 */
-    static int dp_ring(int fd, const char *iface, dp_ring_t *ring, bool tap, bool jumboframe, uint blocks, uint batch){
+    int DP_Ring::dp_ring(int fd, const char *iface, dp_ring_t *ring, bool tap, bool jumboframe, uint blocks, uint batch){
         int enable = 1;
         //丢弃畸形数据包
         setsockopt(fd, SOL_PACKET, PACKET_LOSS, &enable, sizeof(enable));
@@ -191,12 +182,12 @@ namespace dpthreads {
     }
 
     /* bind port */
-    static int dp_ring_bind(int fd, const char *iface){
+    int DP_Ring::dp_ring_bind(int fd, const char *iface){
         struct sockaddr_ll ll;                                /*数据链路层的头信息结构体*/
         memset(&ll, 0, sizeof(ll));
         ll.sll_family = PF_PACKET;                            /*操作链路层的数据*/
         ll.sll_protocol = htons(ETH_P_ALL);                   /*上层协议;16位的主机字节序转换到网络字节序*/
-        ll.sll_ifindex = if_nametoindex(iface);               /*接口类型; if_nametoindex检查网卡名称是否有效*/
+        ll.sll_ifindex = if_nametoindex(iface);        /*接口类型; if_nametoindex检查网卡名称是否有效*/
         ll.sll_hatype = 0;                                    /*报文头类型*/
         ll.sll_pkttype = 0;                                   /*包类型*/
         ll.sll_halen = 0;                                     /*地址长度*/
@@ -204,7 +195,7 @@ namespace dpthreads {
         return bind(fd, (struct sockaddr *)&ll, sizeof(ll));
     }
 
-    void dp_close_socket(dp_context_t *ctx){
+    void DP_Ring::dp_close_socket(dp_context_t *ctx){
         if (ctx->nfq) {
             if (ctx->nfq_ctx.nfq_q_hdl) {
                 nfq_destroy_queue(ctx->nfq_ctx.nfq_q_hdl);
@@ -224,7 +215,7 @@ namespace dpthreads {
      * socket(AF_INET, SOCK_RAW, IPPROTO_TCP|IPPROTO_UDP|IPPROTO_ICMP)发送接收ip数据包，不能用IPPROTO_IP，因为如果是用了IPPROTO_IP，系统根本就不知道该用什么协议。
      * socket(PF_PACKET, SOCK_RAW, htons(ETH_P_IP|ETH_P_ARP|ETH_P_ALL))发送接收以太网数据帧
      * */
-    int dp_open_socket(dp_context_t *ctx, const char *iface, bool tap, bool jumboframe, uint blocks, uint batch){
+    int DP_Ring::dp_open_socket(dp_context_t *ctx, const char *iface, bool tap, bool jumboframe, uint blocks, uint batch){
         //AF_PACKET 与 SOCK_RAW 套接字一起使用接收包含14字节以太网报头的数据报
         //建立链路层socket, AF_PACKET地址族
         int fd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
@@ -246,4 +237,6 @@ namespace dpthreads {
         }
         return fd;
     }
+
+    DP_Ring::DP_Ring() {}
 }

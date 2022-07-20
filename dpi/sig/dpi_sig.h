@@ -5,9 +5,9 @@
 #ifndef ARDP_DPI_SIG_H
 #define ARDP_DPI_SIG_H
 
-#include <cstring>
-#include <cstdio>
-#include <unistd.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdarg.h>
 #include "dpi_hyperscan.h"
 
 namespace dpi {

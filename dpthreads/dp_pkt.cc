@@ -14,6 +14,7 @@ extern "C"
 #include "dp_ctrl_thread.h"
 #include "dp_types.h"
 #include "urcu/hlist.h"
+#include "dp_ring.h"
 
 namespace dpthreads {
 
@@ -36,7 +37,8 @@ namespace dpthreads {
     #define th_ctrl_req_evfd(thr_id) (g_dp_thread_data[thr_id].ctrl_req_evfd)
     #define th_ctrl_req(thr_id)      (g_dp_thread_data[thr_id].ctrl_req)
 
-    int dp_open_socket(dp_context_t *ctx, const char *iface, bool tap, bool tc, uint blocks, uint batch);
+//    int dp_open_socket(dp_context_t *ctx, const char *iface, bool tap, bool tc, uint blocks, uint batch);
+    DP_Ring dpRing;
 
     static dp_context_t *dp_alloc_context(const char *iface, int thr_id, bool tap, bool jumboframe, uint blocks, uint batch){
         int fd;
@@ -46,7 +48,7 @@ namespace dpthreads {
             return nullptr;
         }
 
-        fd = dp_open_socket(ctx, iface, tap, jumboframe, blocks, batch);
+        fd = dpRing.dp_open_socket(ctx, iface, tap, jumboframe, blocks, batch);
         if(fd < 0){
             printf("fail to open dp socket, iface=%s\n", iface);
             free(ctx);
