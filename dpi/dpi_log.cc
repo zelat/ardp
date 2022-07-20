@@ -13,6 +13,7 @@
 #include "base/helper.h"
 #include "base/debug.h"
 #include "dpi_log.h"
+#include "dpi_debug.h"
 
 
 namespace dpi {
@@ -562,7 +563,7 @@ namespace dpi {
             }
         }
 
-        log_cache_t *cache = rcu_map_lookup(&th_log_map, &log);
+        log_cache_t *cache = (log_cache_t *)rcu_map_lookup(&th_log_map, &log);
         if (cache != NULL) {
             if ((count = update_cache(cache, &tprop)) == 0) {
                 // aggregated, store the latest packet
@@ -642,7 +643,7 @@ namespace dpi {
             debug_dump_session_short(sess);
         }
 
-        log_cache_t *cache = rcu_map_lookup(&th_log_map, &log);
+        log_cache_t *cache = (log_cache_t *)rcu_map_lookup(&th_log_map, &log);
         if (cache != NULL) {
             if ((count = update_cache(cache, tprop)) == 0) {
                 // aggregated

@@ -1,9 +1,14 @@
 #include <string.h>
-
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "base/debug.h"
 #include "base/rcu_map.h"
 #include "base/timer_wheel.h"
 #include "base/helper.h"
-
+#ifdef __cplusplus
+}
+#endif
 #include "dpi_module.h"
 #include "dpi_session.h"
 #include "dpi_meter.h"
@@ -103,10 +108,10 @@ namespace dpi {
         IF_DEBUG_LOG(DBG_TIMER | DBG_DDOS, NULL)
         {
             if (likely(m->log.EtherType == ntohs(ETH_P_IP))) {
-                DEBUG_LOG_NO_FILTER("release: type=%s peer="DBG_IPV4_FORMAT"\n",
+                DEBUG_LOG_NO_FILTER("release: type=%s peer=" DBG_IPV4_FORMAT"\n",
                                     info->name, DBG_IPV4_TUPLE(m->peer_ip));
             } else {
-                DEBUG_LOG_NO_FILTER("release: type=%s peer="DBG_IPV6_FORMAT"\n",
+                DEBUG_LOG_NO_FILTER("release: type=%s peer=" DBG_IPV6_FORMAT"\n",
                                     info->name, DBG_IPV6_TUPLE(m->peer_ip.ip6));
             }
         }

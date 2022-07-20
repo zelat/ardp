@@ -58,6 +58,7 @@ target_sources(dpi
         "${CMAKE_SOURCE_DIR}/dpi/dpi_policy.cc"
         "${CMAKE_SOURCE_DIR}/dpi/dpi_log.cc"
         "${CMAKE_SOURCE_DIR}/dpi/dpi_meter.cc"
+        "${CMAKE_SOURCE_DIR}/dpi/dpi_debug.cc"
         "${CMAKE_SOURCE_DIR}/dpi/sig/dpi_hs_search.cc"
         "${CMAKE_SOURCE_DIR}/dpi/sig/dpi_sig.cc"
         )
@@ -77,7 +78,7 @@ target_sources(dpthreads
         "${CMAKE_SOURCE_DIR}/dpthreads/dp_ring.cc"
         "${CMAKE_SOURCE_DIR}/dpthreads/dp_event_cb.cc"
         )
-target_link_libraries(dpthreads base)
+target_link_libraries(dpthreads base dpi)
 
 
 add_executable(ardp main.cc)

@@ -14,8 +14,14 @@
 
 #include "jansson.h"
 #include "urcu/list.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "base/rcu_map.h"
 #include "base/bitmap.h"
+#ifdef __cplusplus
+}
+#endif
 #include "defs.h"
 
 #define MAX_THREAD_NAME_LEN 32
@@ -238,7 +244,12 @@ void dpi_count_session(DPMsgSessionCount *c);
 void dpi_get_stats(io_stats_t *stats, dpi_stats_callback_fct cb);
 
 
-#define GET_EP_FROM_MAC_MAP(buf)  (io_ep_t *)(buf + sizeof(io_mac_t) * 3)
+//#define GET_EP_FROM_MAC_MAP(buf)  (io_ep_t *)(buf + sizeof(io_mac_t) * 3)
+template <typename T>
+io_ep_t * GET_EP_FROM_MAC_MAP(T buf){
+    return (buf + sizeof(io_mac_t) * 3);
+}
+
 typedef struct dpi_policy_app_rule_ {
     uint32_t rule_id;
     uint32_t app;
