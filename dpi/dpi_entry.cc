@@ -3,8 +3,19 @@
 //
 
 #include <cstdint>
+#include "apis.h"
+#include "dpi_module.h"
+#include "base/rcu_map.h"
+#include "base/debug.h"
 
 namespace dpi {
+
+    bool cmp_mac_prefix(void *m1, void *prefix)
+    {
+        if (!m1 || !prefix) return false;
+        return *(uint32_t *)m1 == *(uint32_t *)prefix;
+    }
+
     //return value is only used by nfq, 0 means accept, 1 drop
     int dpi_recv_packet(io_ctx_t *ctx, uint8_t *ptr, int len)
     {
