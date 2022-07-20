@@ -18,7 +18,7 @@
 namespace dpi {
     extern bool cmp_mac_prefix(void *m1, const char *prefix);
 
-#define LOG_CACHE_TIMEOUT 5
+    #define LOG_CACHE_TIMEOUT 5
 
     typedef struct log_cache_ {
         struct cds_lfht_node node;
@@ -42,7 +42,7 @@ namespace dpi {
         uint8_t action;
     } threat_config_t;
 
-// Threat attributes are separated into two places. Eventually they will be generated from a single source
+    // Threat attributes are separated into two places. Eventually they will be generated from a single source
     static threat_property_t threat_property[] = {
             [DPI_THRT_NONE] { 0, },
             [DPI_THRT_TCP_FLOOD] { THRT_ID_SYN_FLOOD, THRT_SEVERITY_CRITICAL, 1, 1, 10, },
@@ -476,7 +476,7 @@ namespace dpi {
             debug_dump_packet_short(p);
         }
 
-        log_cache_t *cache = rcu_map_lookup(&th_log_map, &log);
+        log_cache_t *cache = (log_cache_t *)rcu_map_lookup(&th_log_map, &log);
         if (cache != NULL) {
             if ((count = update_cache(cache, tprop)) == 0) {
                 // aggregated, store the latest packet
