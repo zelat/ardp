@@ -54,6 +54,10 @@ target_sources(dpi
         PRIVATE
         "${CMAKE_SOURCE_DIR}/dpi/dpi_entry.cc"
         "${CMAKE_SOURCE_DIR}/dpi/dpi_packet.cc"
+        "${CMAKE_SOURCE_DIR}/dpi/dpi_session.cc"
+        "${CMAKE_SOURCE_DIR}/dpi/dpi_policy.cc"
+        "${CMAKE_SOURCE_DIR}/dpi/dpi_log.cc"
+        "${CMAKE_SOURCE_DIR}/dpi/dpi_meter.cc"
         "${CMAKE_SOURCE_DIR}/dpi/sig/dpi_hs_search.cc"
         "${CMAKE_SOURCE_DIR}/dpi/sig/dpi_sig.cc"
         )
