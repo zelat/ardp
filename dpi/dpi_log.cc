@@ -11,12 +11,12 @@
 #include <netinet/icmp6.h>
 
 #include "base/helper.h"
-
-#include "dpi/dpi_log.h"
 #include "base/debug.h"
+#include "dpi_log.h"
+
 
 namespace dpi {
-    extern bool cmp_mac_prefix(void *m1, void *prefix);
+    extern bool cmp_mac_prefix(void *m1, const char *prefix);
 
 #define LOG_CACHE_TIMEOUT 5
 
@@ -117,7 +117,7 @@ namespace dpi {
 
     static int log_match(struct cds_lfht_node *ht_node, const void *key) {
         log_cache_t *c = STRUCT_OF(ht_node, log_cache_t, node);
-        const DPMsgThreatLog *k = key;
+        const DPMsgThreatLog *k = (DPMsgThreatLog *)key;
 
         if (k->ThreatID > DPI_SIG_MIN_USER_SIG_ID) {
             return log_dlp_match(ht_node, key);
@@ -128,13 +128,13 @@ namespace dpi {
     }
 
     static uint32_t log_dlp_hash(const void *key) {
-        const DPMsgThreatLog *k = key;
+        const DPMsgThreatLog *k = (DPMsgThreatLog *)key;
 
         return sdbm_hash((uint8_t *) k->EPMAC, sizeof(k->EPMAC)) + k->DlpNameHash;
     }
 
     static uint32_t log_hash(const void *key) {
-        const DPMsgThreatLog *k = key;
+        const DPMsgThreatLog *k = (DPMsgThreatLog *)key;
 
         if (k->ThreatID > DPI_SIG_MIN_USER_SIG_ID) {
             return log_dlp_hash(key);
@@ -678,7 +678,7 @@ namespace dpi {
         } else {
             debug_log(false, DBG_IPV6_FORMAT, DBG_IPV6_TUPLE(m->peer_ip.ip6));
         }
-        debug_log(false, " -> "DBG_MAC_FORMAT"\n", DBG_MAC_TUPLE(m->ep_mac));
+        debug_log(false, " -> " DBG_MAC_FORMAT"\n", DBG_MAC_TUPLE(m->ep_mac));
     }
 
     void dpi_ddos_log(uint32_t idx, dpi_meter_t *m, const char *format, ...) {
@@ -912,7 +912,7 @@ namespace dpi {
         {
             if (likely(dpi_is_ipv4(p))) {
                 struct iphdr *iph = (struct iphdr *) (p->pkt + p->l3);
-                DEBUG_LOG_NO_FILTER("packet sip="DBG_IPV4_FORMAT" dip="DBG_IPV4_FORMAT
+                DEBUG_LOG_NO_FILTER("packet sip=" DBG_IPV4_FORMAT" dip=" DBG_IPV4_FORMAT
                                             " proto %d sport %d dport %d policy %s\n",
                                     DBG_IPV4_TUPLE(iph->saddr), DBG_IPV4_TUPLE(iph->daddr),
                                     p->ip_proto, p->sport, p->dport,

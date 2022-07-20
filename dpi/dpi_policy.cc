@@ -17,12 +17,15 @@
 #include "urcu.h"
 #include "base/debug.h"
 #include "base/rcu_map.h"
-#include "dpi/dpi_module.h"
+#include "dpi_module.h"
+#include "dpi_session.h"
+#include "apis.h"
+#include "dpi_log.h"
 
 namespace dpi {
     dpi_fqdn_hdl_t *g_fqdn_hdl = NULL;
 
-    extern bool cmp_mac_prefix(void *m1, void *prefix);
+    extern bool cmp_mac_prefix(void *m1, const char *prefix);
 
     static int
     policy_match_ipv4_fqdn_code(dpi_fqdn_hdl_t *fqdn_hdl, uint32_t ip, dpi_policy_hdl_t *hdl, dpi_rule_key_t *key,
@@ -57,13 +60,13 @@ namespace dpi {
 
     static int unknown_ip_match(struct cds_lfht_node *ht_node, const void *key) {
         dpi_unknown_ip_cache_t *c = STRUCT_OF(ht_node, dpi_unknown_ip_cache_t, node);
-        const dpi_unknown_ip_desc_t *k = key;
+        const dpi_unknown_ip_desc_t *k = (dpi_unknown_ip_desc_t *)key;
 
         return (c->desc.sip == k->sip && c->desc.dip == k->dip) ? true : false;
     }
 
     static uint32_t unknown_ip_hash(const void *key) {
-        const dpi_unknown_ip_desc_t *k = key;
+        const dpi_unknown_ip_desc_t *k = (dpi_unknown_ip_desc_t *)key;
 
         return sdbm_hash((uint8_t *) &k->sip, 4) + sdbm_hash((uint8_t *) &k->dip, 4);
     }
@@ -79,7 +82,7 @@ namespace dpi {
     }
 
     static void add_unknown_ip_cache(dpi_unknown_ip_desc_t *desc, dpi_unknown_ip_desc_t *key) {
-        dpi_unknown_ip_cache_t *cache = calloc(1, sizeof(*cache));
+        dpi_unknown_ip_cache_t *cache = (dpi_unknown_ip_cache_t *)calloc(1, sizeof(*cache));
         if (cache != NULL) {
             memcpy(&cache->desc, desc, sizeof(*desc));
             cache->start_hit = th_snap.tick;
@@ -142,12 +145,12 @@ namespace dpi {
 
     static int rule_match(struct cds_lfht_node *ht_node, const void *key) {
         dpi_rule_t *s = STRUCT_OF(ht_node, dpi_rule_t, node);
-        const dpi_rule_key_t *k = key;
+        const dpi_rule_key_t *k = (dpi_rule_key_t *)key;
         return memcmp(&s->key, k, sizeof(dpi_rule_key_t)) ? 0 : 1;
     }
 
     static uint32_t rule_hash(const void *key) {
-        const dpi_rule_key_t *k = key;
+        const dpi_rule_key_t *k = (dpi_rule_key_t *)key;
         return sdbm_hash((uint8_t *) k, sizeof(dpi_rule_key_t));
     }
 
@@ -165,13 +168,13 @@ namespace dpi {
 
     static int range_rule_match(struct cds_lfht_node *ht_node, const void *key) {
         dpi_range_rule_t *s = STRUCT_OF(ht_node, dpi_range_rule_t, node);
-        const dpi_range_rule_key_t *k = key;
+        const dpi_range_rule_key_t *k = (dpi_range_rule_key_t *)key;
 
         return memcmp(&s->key, k, sizeof(dpi_range_rule_key_t)) ? 0 : 1;
     }
 
     static uint32_t range_rule_hash(const void *key) {
-        const dpi_range_rule_key_t *k = key;
+        const dpi_range_rule_key_t *k = (dpi_range_rule_key_t *)key;
         return sdbm_hash((uint8_t *) k, sizeof(dpi_range_rule_key_t));
     }
 
@@ -217,7 +220,7 @@ namespace dpi {
 
     static dpi_policy_hdl_t *dpi_policy_hdl_init(int def_action) {
         dpi_policy_hdl_t *hdl;
-        hdl = calloc(sizeof(dpi_policy_hdl_t), 1);
+        hdl = (dpi_policy_hdl_t *)calloc(sizeof(dpi_policy_hdl_t), 1);
         if (!hdl) {
             DEBUG_ERROR(DBG_POLICY, "Out of memory!");
             return NULL;
@@ -314,7 +317,7 @@ namespace dpi {
             return -1;
         }
 
-        r = rcu_map_lookup(&hdl->range_policy_map, &key);
+        r = (dpi_range_rule_t *)rcu_map_lookup(&hdl->range_policy_map, &key);
         if (!r) {
             r = (dpi_range_rule_t *) calloc(1, sizeof(dpi_range_rule_t));
             if (!r) {
@@ -422,7 +425,7 @@ static int dpi_range_rule_del_one(dpi_policy_hdl_t *hdl, dpi_rule_key_t *key_l,
                                      exist_desc);
             if (exist_desc->id != 0) {
                 DEBUG_POLICY("key_l " DP_RULE_STR
-                                     "old:"DP_POLICY_DESC_STR "new:" DP_POLICY_DESC_STR"- same key!\n",
+                                     "old:" DP_POLICY_DESC_STR "new:" DP_POLICY_DESC_STR"- same key!\n",
                              DP_RULE_KEY(key_l),
                              DP_POLICY_DESC((exist_desc)), DP_POLICY_DESC(desc));
                 return 0;
@@ -611,10 +614,10 @@ int dpi_rule_del_one(dpi_policy_hdl_t *hdl, dpi_rule_key_t *key_l, dpi_rule_key_
                     //use server port on workload
                     p->session->xff_port = dport;
                 }
-                DEBUG_POLICY("change dport to:%u, sip to x-forwarded-for:"DBG_IPV4_FORMAT"\n", dport,
+                DEBUG_POLICY("change dport to:%u, sip to x-forwarded-for:" DBG_IPV4_FORMAT"\n", dport,
                              DBG_IPV4_TUPLE(sip));
                 if (xff_replace_dst_ip > 0) {
-                    DEBUG_POLICY("change dst ip from :"DBG_IPV4_FORMAT" to :"DBG_IPV4_FORMAT"\n", DBG_IPV4_TUPLE(dip),
+                    DEBUG_POLICY("change dst ip from :" DBG_IPV4_FORMAT" to :" DBG_IPV4_FORMAT"\n", DBG_IPV4_TUPLE(dip),
                                  DBG_IPV4_TUPLE(xff_replace_dst_ip));
                     dip = xff_replace_dst_ip;
                 }
@@ -628,7 +631,7 @@ int dpi_rule_del_one(dpi_policy_hdl_t *hdl, dpi_rule_key_t *key_l, dpi_rule_key_
         proto = p->ip_proto;
         is_ingress = to_server ? p->flags & DPI_PKT_FLAG_INGRESS : !(p->flags & DPI_PKT_FLAG_INGRESS);
         DEBUG_POLICY(
-                "hdl:%p proto:%u client:"DBG_IPV4_FORMAT" server:"DBG_IPV4_FORMAT":%u app:%u ingress:%d to_server:%d\n",
+                "hdl:%p proto:%u client:" DBG_IPV4_FORMAT" server:" DBG_IPV4_FORMAT":%u app:%u ingress:%d to_server:%d\n",
                 hdl, proto, DBG_IPV4_TUPLE(sip), DBG_IPV4_TUPLE(dip), dport, app, is_ingress, to_server);
         dpi_policy_lookup_by_key(hdl, sip, dip, dport, proto, app, is_ingress, desc);
 
@@ -687,7 +690,7 @@ int dpi_rule_del_one(dpi_policy_hdl_t *hdl, dpi_rule_key_t *key_l, dpi_rule_key_
             iptype == DP_IPTYPE_HOSTIP ||
             iptype == DP_IPTYPE_TUNNELIP) {//unknown wl
             uint16_t thdl_ver = hdl ? hdl->ver : 0;
-            dpi_unknown_ip_cache_t *uip_cache = rcu_map_lookup(&th_unknown_ip_map, &uip_desc);
+            dpi_unknown_ip_cache_t *uip_cache = (dpi_unknown_ip_cache_t *)rcu_map_lookup(&th_unknown_ip_map, &uip_desc);
             if (uip_cache != NULL) {
                 /*
                  * existing unknown_ip_cache found
@@ -733,7 +736,7 @@ int dpi_rule_del_one(dpi_policy_hdl_t *hdl, dpi_rule_key_t *key_l, dpi_rule_key_
     static int _dpi_policy_lookup_by_key(dpi_policy_hdl_t *hdl, dpi_rule_key_t *key,
                                          int is_ingress, dpi_policy_desc_t *desc) {
         dpi_rule_t *r;
-        r = rcu_map_lookup(&hdl->policy_map, key);
+        r = (dpi_rule_t *)rcu_map_lookup(&hdl->policy_map, key);
         if (r) {
             policy_desc_cpy(desc, &r->desc);
             goto exit;
@@ -751,7 +754,7 @@ int dpi_rule_del_one(dpi_policy_hdl_t *hdl, dpi_rule_key_t *key_l, dpi_rule_key_
                 key2.flag = DP_RANGE_RULE_EGRESS;
                 key2.ip = key->sip;
             }
-            r2 = rcu_map_lookup(&hdl->range_policy_map, &key2);
+            r2 = (dpi_range_rule_t *)rcu_map_lookup(&hdl->range_policy_map, &key2);
             if (r2) {
                 item = dpi_range_rule_match(r2, key);
                 if (item) {
@@ -763,7 +766,7 @@ int dpi_rule_del_one(dpi_policy_hdl_t *hdl, dpi_rule_key_t *key_l, dpi_rule_key_
             /* match no direction rule */
             key2.flag = 0;
             key2.ip = 0;
-            r2 = rcu_map_lookup(&hdl->range_policy_map, &key2);
+            r2 = (dpi_range_rule_t *)rcu_map_lookup(&hdl->range_policy_map, &key2);
             if (r2) {
                 item = dpi_range_rule_match(r2, key);
                 if (item) {
@@ -1083,7 +1086,7 @@ int dpi_rule_del_one(dpi_policy_hdl_t *hdl, dpi_rule_key_t *key_l, dpi_rule_key_
         ep_mac = is_ingress ? s->server.mac : s->client.mac;
         buf = rcu_map_lookup(&g_ep_map, ep_mac);
         if (!buf) {
-            DEBUG_POLICY("cannot find mac: "DBG_MAC_FORMAT "\n", DBG_MAC_TUPLE(ep_mac));
+            DEBUG_POLICY("cannot find mac: " DBG_MAC_FORMAT "\n", DBG_MAC_TUPLE(ep_mac));
             return 0;
         }
         ep = GET_EP_FROM_MAC_MAP(buf);
@@ -1161,7 +1164,7 @@ static void dpi_policy_set_session_reeval()
         buf = rcu_map_lookup(&g_ep_map, mac_addr);
         if (!buf) {
             rcu_read_unlock();
-            DEBUG_POLICY("cannot find mac: "DBG_MAC_FORMAT "\n", DBG_MAC_TUPLE(*mac_addr));
+            DEBUG_POLICY("cannot find mac: " DBG_MAC_FORMAT "\n", DBG_MAC_TUPLE(*mac_addr));
             return -1;
         }
         ep = GET_EP_FROM_MAC_MAP(buf);
@@ -1180,7 +1183,7 @@ static void dpi_policy_set_session_reeval()
             }
             dpi_policy_hdl_destroy(old);
         }
-        DEBUG_POLICY("mac: "DBG_MAC_FORMAT" policy hdl %p ver %u done\n",
+        DEBUG_POLICY("mac: " DBG_MAC_FORMAT" policy hdl %p ver %u done\n",
                      DBG_MAC_TUPLE(*mac_addr), hdl, ep->policy_ver);
         return 0;
     }
@@ -1336,29 +1339,29 @@ static void dpi_policy_set_session_reeval()
  */
     static int fqdn_name_match(struct cds_lfht_node *ht_node, const void *key) {
         fqdn_name_entry_t *s = STRUCT_OF(ht_node, fqdn_name_entry_t, node);
-        const char *k = key;
+        const char *k = (char *)key;
         return strcasecmp(s->r->name, k) ? 0 : 1;
     }
 
     static uint32_t fqdn_name_hash(const void *key) {
-        const char *k = key;
+        const char *k = (char *)key;
         return sdbm_hash((uint8_t *) k, strlen(k) * sizeof(char));
     }
 
     static int fqdn_ipv4_match(struct cds_lfht_node *ht_node, const void *key) {
         fqdn_ipv4_entry_t *s = STRUCT_OF(ht_node, fqdn_ipv4_entry_t, node);
-        const uint32_t *k = key;
+        const uint32_t *k = (uint32_t *)key;
         return (s->ip == *k);
     }
 
     static uint32_t fqdn_ipv4_hash(const void *key) {
-        const uint32_t *k = key;
+        const uint32_t *k = (uint32_t *)key;
         return sdbm_hash((uint8_t *) k, sizeof(uint32_t));
     }
 
     static dpi_fqdn_hdl_t *dpi_fqdn_hdl_init() {
         dpi_fqdn_hdl_t *hdl;
-        hdl = calloc(sizeof(dpi_fqdn_hdl_t), 1);
+        hdl = (dpi_fqdn_hdl_t *)calloc(sizeof(dpi_fqdn_hdl_t), 1);
         if (!hdl) {
             DEBUG_ERROR(DBG_POLICY, "Out of memory!");
             return NULL;
@@ -1457,13 +1460,13 @@ static void dpi_policy_set_session_reeval()
         //init list
         config_fqdn_init_ip_record_list(entry, r);
         //one ip can map to multiple fqdn record
-        record_item = calloc(1, sizeof(fqdn_record_item_t));
+        record_item = (fqdn_record_item_t *)calloc(1, sizeof(fqdn_record_item_t));
         if (record_item == NULL) {
             DEBUG_ERROR(DBG_POLICY, "OOM!!!\n");
             return -1;
         }
         //one fqdn record can map to multiple ip
-        ipv4_item = calloc(1, sizeof(fqdn_ipv4_item_t));
+        ipv4_item = (fqdn_ipv4_item_t *)calloc(1, sizeof(fqdn_ipv4_item_t));
         if (ipv4_item == NULL) {
             DEBUG_ERROR(DBG_POLICY, "OOM!!!\n");
             free(record_item);
@@ -1497,7 +1500,7 @@ static void dpi_policy_set_session_reeval()
         fqdn_ipv4_entry_t *ipv4_entry;
         fqdn_record_t *r = NULL;
 
-        name_entry = rcu_map_lookup(&hdl->fqdn_name_map, name);
+        name_entry = (fqdn_name_entry_t *)rcu_map_lookup(&hdl->fqdn_name_map, name);
         if (!name_entry) {
             fqdn_name_entry_t *entry;
             entry = (fqdn_name_entry_t *) calloc(1, sizeof(fqdn_name_entry_t));
@@ -1542,7 +1545,7 @@ static void dpi_policy_set_session_reeval()
             return r->code;
         }
 
-        ipv4_entry = rcu_map_lookup(&hdl->fqdn_ipv4_map, &ip);
+        ipv4_entry = (fqdn_ipv4_entry_t *)rcu_map_lookup(&hdl->fqdn_ipv4_map, &ip);
         if (!ipv4_entry) {
             fqdn_ipv4_entry_t *entry;
             entry = (fqdn_ipv4_entry_t *) calloc(1, sizeof(fqdn_ipv4_entry_t));
@@ -1569,7 +1572,7 @@ static void dpi_policy_set_session_reeval()
     policy_match_ipv4_fqdn_code(dpi_fqdn_hdl_t *fqdn_hdl, uint32_t ip, dpi_policy_hdl_t *hdl, dpi_rule_key_t *key,
                                 int is_ingress, dpi_policy_desc_t *desc2) {
         fqdn_ipv4_entry_t *ipv4_entry;
-        ipv4_entry = rcu_map_lookup(&fqdn_hdl->fqdn_ipv4_map, &ip);
+        ipv4_entry = (fqdn_ipv4_entry_t *)rcu_map_lookup(&fqdn_hdl->fqdn_ipv4_map, &ip);
         if (!ipv4_entry) {
             return 0;
         } else {
@@ -1606,7 +1609,7 @@ static void dpi_policy_set_session_reeval()
         int i, ret;
         bool new_ip = false;
         for (i = 0; i < cnt; i++) {
-            ipv4_entry = rcu_map_lookup(&hdl->fqdn_ipv4_map, &ip[i]);
+            ipv4_entry = (fqdn_ipv4_entry_t *)rcu_map_lookup(&hdl->fqdn_ipv4_map, &ip[i]);
             if (ipv4_entry) {
                 ret = config_record_ip_list(ipv4_entry, name_entry->r);
                 //existing ip entry associated with wildcard fqdn
@@ -1649,7 +1652,7 @@ static void dpi_policy_set_session_reeval()
         }
         DEBUG_POLICY("name: (%s) ip cnt: (%d)\n", name, cnt);
 
-        name_entry = rcu_map_lookup(&hdl->fqdn_name_map, name);
+        name_entry = (fqdn_name_entry_t *)rcu_map_lookup(&hdl->fqdn_name_map, name);
         if (name_entry &&
             !(name_entry->r->flag & (FQDN_RECORD_TO_DELETE | FQDN_RECORD_DELETED))) {
             DEBUG_POLICY("exact match name: (%s)\n", name);
@@ -1667,7 +1670,7 @@ static void dpi_policy_set_session_reeval()
         for (i = 0; i < j - 1; i++) {
             if (dname[i + 1] == '.') {
                 dname[i] = '*';
-                name_entry = rcu_map_lookup(&hdl->fqdn_name_map, &dname[i]);
+                name_entry = (fqdn_name_entry_t *)rcu_map_lookup(&hdl->fqdn_name_map, &dname[i]);
                 if (name_entry &&
                     !(name_entry->r->flag & (FQDN_RECORD_TO_DELETE | FQDN_RECORD_DELETED))) {
                     DEBUG_POLICY("wildcard match name: (%s)\n", &dname[i]);
@@ -1790,7 +1793,7 @@ static void dpi_policy_set_session_reeval()
     void dpi_fqdn_entry_mark_delete(const char *name) {
         fqdn_name_entry_t *entry;
 
-        entry = rcu_map_lookup(&g_fqdn_hdl->fqdn_name_map, name);
+        entry = (fqdn_name_entry_t *)rcu_map_lookup(&g_fqdn_hdl->fqdn_name_map, name);
         if (entry) {
             entry->r->flag |= FQDN_RECORD_TO_DELETE;
         }
