@@ -11,7 +11,6 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <net/ethernet.h>
-
 #include "jansson.h"
 #include "urcu/list.h"
 #ifdef __cplusplus
@@ -234,7 +233,7 @@ typedef void (*dpi_stats_callback_fct)(io_stats_t *stats, io_stats_t *s);
 // in
 void dpi_setup(io_callback_t *cb, io_config_t *cfg);
 void dpi_init(int reason);
-int dpi_recv_packet(io_ctx_t *context, uint8_t *pkt, int len);
+//int dpi_recv_packet(io_ctx_t *context, uint8_t *pkt, int len);
 void dpi_timeout(uint32_t tick);
 
 void dpi_handle_ctrl_req(int req, io_ctx_t *context);
@@ -244,11 +243,12 @@ void dpi_count_session(DPMsgSessionCount *c);
 void dpi_get_stats(io_stats_t *stats, dpi_stats_callback_fct cb);
 
 
-//#define GET_EP_FROM_MAC_MAP(buf)  (io_ep_t *)(buf + sizeof(io_mac_t) * 3)
-template <typename T>
-io_ep_t * GET_EP_FROM_MAC_MAP(T buf){
-    return (buf + sizeof(io_mac_t) * 3);
-}
+#define GET_EP_FROM_MAC_MAP(buf)  (io_ep_t *)(buf + sizeof(io_mac_t) * 3)
+//template <typename T>
+//template <typename T>
+//io_ep_t * GET_EP_FROM_MAC_MAP(T buf){
+//    return (buf + sizeof(io_mac_t) * 3);
+//}
 
 typedef struct dpi_policy_app_rule_ {
     uint32_t rule_id;

@@ -2,19 +2,13 @@
 <project version="4">
   <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false" showNewOnSourceInSync="false">
     <serverData>
-      <paths name="Develop (a82496d9-4320-4fce-be6d-f68859671671)">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
       <paths name="dev (9ce88902-9f33-4b80-beeb-577e3f849e78)">
         <serverdata>
           <mappings>
             <mapping deploy="ardp" local="$PROJECT_DIR$" />
           </mappings>
           <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug" />
             <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug" />
           </excludedPaths>
         </serverdata>

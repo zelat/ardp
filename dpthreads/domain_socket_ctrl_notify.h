@@ -8,18 +8,21 @@
 #include <sys/un.h>
 
 //这个fd用于DP主动向agent发送数据
-namespace dpthreads {
-    class DomainSocketCTRLNotify{
-    private:
-        int ctrl_notify_fd;
-        struct sockaddr_un ctrl_notify_addr;
-        int Connect(const char *filename);
-    public:
-        int Init();
-        void Exit();
-        int SendNotify(void *data, int len);
-        int ReceiveBinary(void *data, int len);
-    };
+class DomainSocketCTRLNotify {
+private:
+    int ctrl_notify_fd;
+    struct sockaddr_un ctrl_notify_addr;
+
+    int Connect(const char *filename);
+
+public:
+    int Init();
+
+    void Exit();
+
+    int SendNotify(void *data, int len);
+
+    int ReceiveBinary(void *data, int len);
 };
 
 

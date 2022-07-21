@@ -11,8 +11,4 @@
 #include <netinet/in.h>
 #include "dp_ctrl_handler.h"
 
-using namespace  std;
-
-namespace dpthreads{
-
-}
+using namespace std;

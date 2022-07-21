@@ -15,11 +15,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules;${CMAKE_MODULE_PATH}")
 
 include(cmake/Modules/libnetfilter_queue.cmake)
 include(cmake/Modules/pcap-1.9.0.cmake)
-include(cmake/Modules/userspace-rcu-0.13.1.cmake)
 include(cmake/Modules/jansson-2.14.cmake)
+#include(cmake/Modules/userspace-rcu-0.13.1.cmake)
 include(cmake/Modules/pcre2-10.40.cmake)
 include(cmake/Modules/hyperscan-5.4.0.cmake)
 #编译时候的选项
@@ -31,7 +32,15 @@ include_directories(
         "${PROJECT_SOURCE_DIR}"
 )
 
-find_package (Threads)
+find_package (Threads REQUIRED)
+find_package (URCU REQUIRED)
+if(URCU_FOUND)
+    message("liburcu found")
+#    target_include_directories(${MODULE_MAIN} PRIVATE ${URCU_INCLUDE_DIR})
+#    target_link_libraries(${MODULE_MAIN} ${URCU_LIBRARY})
+else()
+    message("required liburcu not found")
+endif()
 
 add_library(base "")
 target_sources(base
@@ -47,7 +56,7 @@ target_sources(base
         "${CMAKE_SOURCE_DIR}/base/debug.c"
         "${CMAKE_SOURCE_DIR}/base/event_handler.cc"
         )
-target_link_libraries(base urcu urcu-cds)
+target_link_libraries(base ${URCU_LIBRARY})
 
 add_library(dpi "" dpi/sig/dpi_hyperscan.h)
 target_sources(dpi
