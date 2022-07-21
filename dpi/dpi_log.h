@@ -52,8 +52,8 @@ namespace dpi {
 
     void dpi_ddos_log(uint32_t idx, dpi_meter_t *m, const char *format, ...);
 
-#define DPI_CONNECT_REPORT_INTERVAL       60
-#define DPI_CONNECT_REPORT_INTERVAL_SHORT 15
+    #define DPI_CONNECT_REPORT_INTERVAL       60
+    #define DPI_CONNECT_REPORT_INTERVAL_SHORT 15
 
     int dpi_session_start_log(dpi_session_t *s, bool xff);
 

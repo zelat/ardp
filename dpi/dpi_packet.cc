@@ -454,22 +454,22 @@ namespace dpi {
     }
 
     static uint8_t tcp_opt_len[TCP_OPT_MAX] = {
-            [(int)TCP_OPT_EOL]          1,
-            [(int)TCP_OPT_NOP]          1,
-            [(int)TCP_OPT_MSS]          4,
-            [(int)TCP_OPT_WSCALE]       3,
-            [(int)TCP_OPT_SACKOK]       2,
-            [(int)TCP_OPT_ECHO]         6,
-            [(int)TCP_OPT_ECHOREPLY]    6,
-            [(int)TCP_OPT_TIMESTAMP]    10,
-            [(int)TCP_OPT_PARTIAL_PERM] 2,
-            [(int)TCP_OPT_PARTIAL_SVC]  3,
-            [(int)TCP_OPT_CC]           6,
-            [(int)TCP_OPT_CC_NEW]       6,
-            [(int)TCP_OPT_CC_ECHO]      6,
-            [(int)TCP_OPT_ALTCSUM_ALGO] 3,
-            [(int)TCP_OPT_TRAILER_CSUM] 3,
-            [(int)TCP_OPT_MD5]          18,
+            tcp_opt_len[TCP_OPT_EOL]    =     1,
+            tcp_opt_len[TCP_OPT_NOP]    =      1,
+            tcp_opt_len[TCP_OPT_MSS]    =     4,
+            tcp_opt_len[TCP_OPT_WSCALE] =     3,
+            tcp_opt_len[TCP_OPT_SACKOK] =     2,
+            tcp_opt_len[TCP_OPT_ECHO]   =     6,
+            tcp_opt_len[TCP_OPT_ECHOREPLY] =  6,
+            tcp_opt_len[TCP_OPT_TIMESTAMP] =  10,
+            tcp_opt_len[TCP_OPT_PARTIAL_PERM] = 2,
+            tcp_opt_len[TCP_OPT_PARTIAL_SVC] =  3,
+            tcp_opt_len[TCP_OPT_CC]     =     6,
+            tcp_opt_len[TCP_OPT_CC_NEW] =     6,
+            tcp_opt_len[TCP_OPT_CC_ECHO]  =   6,
+            tcp_opt_len[TCP_OPT_ALTCSUM_ALGO] = 3,
+            tcp_opt_len[TCP_OPT_TRAILER_CSUM] = 3,
+            tcp_opt_len[TCP_OPT_MD5]   =      18,
     };
 
     static int dpi_parse_tcp_options(dpi_packet_t *p) {

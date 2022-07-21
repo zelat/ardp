@@ -152,12 +152,12 @@ namespace dpi {
         dpi_sigopt_node_t node;
 
         uint8_t flags;
-        uint8_t class;  //dpi_sig_context_class_t
+//        uint8_t class;  //dpi_sig_context_class_t
         uint8_t type;  //dpi_sig_context_type_t
 
         struct {
             uint8_t *string;           /*pcre signature*/
-            pcre2_code *recompiled;    /*pcre compiled database*/
+            pcre2_code_8 *recompiled;    /*pcre compiled database*/
             struct hs_database *hs_db; /* hyperscan database */
             int hs_flags;              /* hyperscan flags used for compile */
             int hs_noconfirm;          /* hyperscan matches don't need confirm */

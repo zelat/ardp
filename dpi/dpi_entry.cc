@@ -3,6 +3,8 @@
 //
 
 #include <cstdint>
+#include <netinet/ip.h>
+#include <netinet/ip6.h>
 #include "apis.h"
 #include "dpi_module.h"
 #include "base/rcu_map.h"
@@ -10,6 +12,38 @@
 #include "dpi_session.h"
 
 namespace dpi {
+
+    // return true if packet is ingress to "lo" i/f
+    static bool proxymesh_packet_direction(io_ctx_t *ctx, dpi_packet_t *p)
+    {
+        io_app_t *app = NULL;
+        if (p->eth_type == ETH_P_IP) {//ipv4
+
+            struct iphdr *iph = (struct iphdr *)(p->pkt + p->l3);
+
+            if (iph->saddr == iph->daddr) {
+                app = dpi_ep_app_map_lookup(p->ep, p->dport, p->ip_proto);
+                if (app != NULL) return false;
+                app = dpi_ep_app_map_lookup(p->ep, p->sport, p->ip_proto);
+                if (app != NULL) return true;
+                return p->dport > p->sport;
+            } else if (iph->daddr == htonl(INADDR_LOOPBACK) || IS_IN_LOOPBACK(ntohl(iph->daddr))) {
+                return true;
+            }
+        } else {//ipv6
+            struct ip6_hdr *ip6h = (struct ip6_hdr *)(p->pkt + p->l3);
+            if(memcmp((uint8_t *)(ip6h->ip6_src.s6_addr), (uint8_t *)(ip6h->ip6_dst.s6_addr), 16) == 0) {
+                app = dpi_ep_app_map_lookup(p->ep, p->dport, p->ip_proto);
+                if (app != NULL) return false;
+                app = dpi_ep_app_map_lookup(p->ep, p->sport, p->ip_proto);
+                if (app != NULL) return true;
+                return p->dport > p->sport;
+            } else if (memcmp((uint8_t *)(ip6h->ip6_dst.s6_addr), (uint8_t *)(in6addr_loopback.s6_addr), sizeof(ip6h->ip6_dst.s6_addr)) == 0) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     bool cmp_mac_prefix(void *m1, const char *prefix)
     {
@@ -265,4 +299,6 @@ namespace dpi {
         }
         return 0;
     }
+
+
 }
