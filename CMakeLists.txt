@@ -1,19 +1,19 @@
 cmake_minimum_required(VERSION 3.20)
 project("ardp" VERSION 1.0.0 LANGUAGES C CXX)
 
-# å¯åŠ¨å¯¹99æ ‡å‡†çš„æ”¯æŒ
+# Æô¶¯¶Ô99±ê×¼µÄÖ§³Ö
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED OFF)
 set(CMAKE_C_EXTENSIONS OFF)
 
-# å¯åŠ¨å¯¹C++11æ ‡å‡†çš„æ”¯æŒ
+# Æô¶¯¶ÔC++11±ê×¼µÄÖ§³Ö
 set(CMAKE_CXX_STANDARD 11)
-# æ˜¾å¼è¦æ±‚æŒ‡æ˜æ”¯æŒC++æ ‡å‡†
+# ÏÔÊ½ÒªÇóÖ¸Ã÷Ö§³ÖC++±ê×¼
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -std=c++11 -Werror -Wno-unused-result -Wno-unused-function -fstrict-aliasing -Wstrict-aliasing -g")
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules;${CMAKE_MODULE_PATH}")
 
@@ -23,11 +23,9 @@ include(cmake/Modules/jansson-2.14.cmake)
 #include(cmake/Modules/userspace-rcu-0.13.1.cmake)
 include(cmake/Modules/pcre2-10.40.cmake)
 include(cmake/Modules/hyperscan-5.4.0.cmake)
-#ç¼–è¯‘æ—¶å€™çš„é€‰é¡¹
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Werror -Wno-unused-result -Wno-unused-function -fstrict-aliasing -Wstrict-aliasing -g")
 
 set(CMAKE_BUILD_TYPE "Release")
-# PROJECT_SOURCE_DIRæŒ‡çš„æ˜¯å·¥ç¨‹é¡¶å±‚ç›®å½•
+# PROJECT_SOURCE_DIRÖ¸µÄÊÇ¹¤³Ì¶¥²ãÄ¿Â¼
 include_directories(
         "${PROJECT_SOURCE_DIR}"
 )
@@ -58,7 +56,7 @@ target_sources(base
         )
 target_link_libraries(base ${URCU_LIBRARY})
 
-add_library(dpi "" dpi/sig/dpi_hyperscan.h)
+add_library(dpi "")
 target_sources(dpi
         PRIVATE
         "${CMAKE_SOURCE_DIR}/dpi/dpi_entry.cc"
