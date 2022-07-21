@@ -8,8 +8,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdarg.h>
-#include "dpi_hyperscan.h"
 #include <pcre2.h>
+#include "dpi_hyperscan.h"
 
 namespace dpi {
     #define PCRE2_CODE_UNIT_WIDTH 8

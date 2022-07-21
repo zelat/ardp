@@ -44,7 +44,7 @@ enum {
 };
 
 #define MAC_PREFIX "NeuV"
-#define PROXYMESH_MAC_PREFIX "lkst"//0x6c6b7374
+#define PROXYMESH_MAC_PREFIX "lkst"                             //0x6c6b7374
 #define IFACE_NAME_LEN 32
 
 typedef union io_ip_ {
@@ -244,11 +244,11 @@ void dpi_count_session(DPMsgSessionCount *c);
 void dpi_get_stats(io_stats_t *stats, dpi_stats_callback_fct cb);
 
 
-//#define GET_EP_FROM_MAC_MAP(buf)  (io_ep_t *)(buf + sizeof(io_mac_t) * 3)
-template <typename T>
-io_ep_t * GET_EP_FROM_MAC_MAP(T buf){
-    return (buf + sizeof(io_mac_t) * 3);
-}
+#define GET_EP_FROM_MAC_MAP(buf)  (io_ep_t *)(buf + sizeof(io_mac_t) * 3)
+//template <typename T>
+//io_ep_t * GET_EP_FROM_MAC_MAP(T &buf){
+//    return (buf + sizeof(io_mac_t) * 3);
+//}
 
 typedef struct dpi_policy_app_rule_ {
     uint32_t rule_id;
@@ -402,7 +402,7 @@ void dp_dlp_destroy(void *dlp_detector);
 #define CTRL_REQ_TIMEOUT 4
 #define CTRL_DLP_REQ_TIMEOUT 2
 
-/* ‰∫íÊñ•Èáè */
+/* ª•≥‚¡ø */
 //extern pthread_cond_t g_ctrl_req_cond;
 //extern pthread_mutex_t g_ctrl_req_lock;
 extern int dp_data_wait_ctrl_req_thr(int req, int thr_id);

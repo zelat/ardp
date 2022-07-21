@@ -1,5 +1,5 @@
 //
-// Created by Administrator on 2022/7/20.
+// Created by tanchao on 2022/7/20.
 //
 
 #include <stdio.h>
@@ -15,11 +15,13 @@
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 #include "urcu.h"
+extern "C" {
 #include "base/debug.h"
 #include "base/rcu_map.h"
+#include "apis.h"
+}
 #include "dpi_module.h"
 #include "dpi_session.h"
-#include "apis.h"
 #include "dpi_log.h"
 
 namespace dpi {

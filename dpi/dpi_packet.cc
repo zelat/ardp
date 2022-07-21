@@ -45,7 +45,7 @@ namespace dpi {
         register uint16_t *ptr;
         register int len, i;
 
-        ptr = l4_hdr;
+        ptr = (uint16_t *)l4_hdr;
         len = l4_len >> 1;
         for (i = 0; i < len; i++, ptr++) {
             sum += *ptr;
@@ -454,22 +454,22 @@ namespace dpi {
     }
 
     static uint8_t tcp_opt_len[TCP_OPT_MAX] = {
-            [TCP_OPT_EOL]          1,
-            [TCP_OPT_NOP]          1,
-            [TCP_OPT_MSS]          4,
-            [TCP_OPT_WSCALE]       3,
-            [TCP_OPT_SACKOK]       2,
-            [TCP_OPT_ECHO]         6,
-            [TCP_OPT_ECHOREPLY]    6,
-            [TCP_OPT_TIMESTAMP]    10,
-            [TCP_OPT_PARTIAL_PERM] 2,
-            [TCP_OPT_PARTIAL_SVC]  3,
-            [TCP_OPT_CC]           6,
-            [TCP_OPT_CC_NEW]       6,
-            [TCP_OPT_CC_ECHO]      6,
-            [TCP_OPT_ALTCSUM_ALGO] 3,
-            [TCP_OPT_TRAILER_CSUM] 3,
-            [TCP_OPT_MD5]          18,
+            [(int)TCP_OPT_EOL]          1,
+            [(int)TCP_OPT_NOP]          1,
+            [(int)TCP_OPT_MSS]          4,
+            [(int)TCP_OPT_WSCALE]       3,
+            [(int)TCP_OPT_SACKOK]       2,
+            [(int)TCP_OPT_ECHO]         6,
+            [(int)TCP_OPT_ECHOREPLY]    6,
+            [(int)TCP_OPT_TIMESTAMP]    10,
+            [(int)TCP_OPT_PARTIAL_PERM] 2,
+            [(int)TCP_OPT_PARTIAL_SVC]  3,
+            [(int)TCP_OPT_CC]           6,
+            [(int)TCP_OPT_CC_NEW]       6,
+            [(int)TCP_OPT_CC_ECHO]      6,
+            [(int)TCP_OPT_ALTCSUM_ALGO] 3,
+            [(int)TCP_OPT_TRAILER_CSUM] 3,
+            [(int)TCP_OPT_MD5]          18,
     };
 
     static int dpi_parse_tcp_options(dpi_packet_t *p) {
@@ -1301,7 +1301,7 @@ namespace dpi {
             th_stats.out.cur_session++;
             th_stats.out.sess_ring[slot]++;
 
-            io_mac_t *mac = rcu_map_lookup(&g_ep_map, s->client.mac);
+            io_mac_t *mac = (io_mac_t *)rcu_map_lookup(&g_ep_map, s->client.mac);
             if (mac != NULL) {
                 mac->ep->stats.out.session++;
                 mac->ep->stats.out.cur_session++;

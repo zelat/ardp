@@ -7,18 +7,11 @@
 #include <iostream>
 #include <base/utils/singleton.h>
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 #include "base/helper.h"
 #include "base/bits.h"
 #include "base/rcu_map.h"
 #include "base/debug.h"
 #include "apis.h"
-#ifdef __cplusplus
-}
-#endif
 #include "dp_ctrl_thread.h"
 #include "dp_ctrl_handler.h"
 

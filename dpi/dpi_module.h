@@ -1,12 +1,16 @@
 #ifndef __DPI_MODULE_H__
 #define __DPI_MODULE_H__
 
-#include <stdint.h>
-#include <time.h>
+#include <cstdint>
+#include <ctime>
 #include "base/rcu_map.h"
 #include "base/timer_wheel.h"
-#include "dpi_packet.h"
 #include "apis.h"
+#include "dpi_packet.h"
+#include "dpi_session.h"
+#include "dpi_debug.h"
+#include "dpi_log.h"
+#include "dpi_policy.h"
 
 namespace dpi {
     extern rcu_map_t g_ep_map;

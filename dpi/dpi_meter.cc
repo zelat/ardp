@@ -1,4 +1,6 @@
-#include <string.h>
+#include <cstring>
+#include <netinet/ip.h>
+#include <netinet/ip6.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -10,9 +12,7 @@ extern "C" {
 }
 #endif
 #include "dpi_module.h"
-#include "dpi_session.h"
-#include "dpi_meter.h"
-#include "dpi_log.h"
+
 
 namespace dpi {
     void log_common(DPMsgThreatLog *log, int idx);
@@ -26,19 +26,19 @@ namespace dpi {
     void log_session_detail(DPMsgThreatLog *log, dpi_session_t *sess);
 
     static meter_info_t meter_info[] = {
-            [DPI_METER_SYN_FLOOD] {
+            [(uint32_t)DPI_METER_SYN_FLOOD] {
                 "syn_flood", METER_ID_SYN_FLOOD, DPI_THRT_TCP_FLOOD, true, false, true, false,
                         3, 30, 1, 200, 200
             },
-            [DPI_METER_ICMP_FLOOD] {
+            [(uint32_t)DPI_METER_ICMP_FLOOD] {
                 "icmp_flood", METER_ID_ICMP_FLOOD, DPI_THRT_ICMP_FLOOD, true, false, true, false,
                         3, 30, 1, 100, 100
             },
-            [DPI_METER_IP_SRC_SESSION] {
+            [(uint32_t)DPI_METER_IP_SRC_SESSION] {
                 "ip_src_session", METER_ID_IP_SRC_SESSION, DPI_THRT_IP_SRC_SESSION, false, false, true, true,
                         3, 30, 1, 2000, 2000
             },
-            [DPI_METER_TCP_NODATA] {
+            [(uint32_t)DPI_METER_TCP_NODATA] {
                 "tcp_nodata", METER_ID_TCP_NODATA, DPI_THRT_TCP_NODATA, true, false, true, false,
                         10, 0, 10, 10, 10
             },
@@ -51,7 +51,7 @@ namespace dpi {
 
     static int meter_match(struct cds_lfht_node *ht_node, const void *key) {
         dpi_meter_t *m = STRUCT_OF(ht_node, dpi_meter_t, node);
-        const dpi_meter_t *k = key;
+        const dpi_meter_t *k = (dpi_meter_t *)key;
 
         if (m->type != k->type) return false;
 
@@ -67,7 +67,7 @@ namespace dpi {
     }
 
     static uint32_t meter_hash(const void *key) {
-        const dpi_meter_t *k = key;
+        const dpi_meter_t *k = (dpi_meter_t *)key;
 
         return sdbm_hash((uint8_t *) &k->ep_mac, sizeof(k->ep_mac)) +
                sdbm_hash((uint8_t *) &k->peer_ip, sizeof(k->peer_ip)) + k->type;
@@ -124,7 +124,7 @@ namespace dpi {
     static dpi_meter_t *meter_alloc(int type, uint8_t *ep_mac, uint8_t *peer_ip, bool ipv4) {
         dpi_meter_t *m;
 
-        m = calloc(1, sizeof(*m));
+        m = (dpi_meter_t *)calloc(1, sizeof(*m));
         if (unlikely(m == NULL)) return NULL;
 
         make_key(m, type, ep_mac, peer_ip, ipv4);
@@ -144,7 +144,7 @@ namespace dpi {
 
         memset(&key, 0, sizeof(key));
         make_key(&key, type, ep_mac, peer_ip, ipv4);
-        m = rcu_map_lookup(&th_meter_map, &key);
+        m = (dpi_meter_t *)rcu_map_lookup(&th_meter_map, &key);
         if (m == NULL) {
             m = meter_alloc(type, ep_mac, peer_ip, ipv4);
             if (unlikely(m == NULL)) return NULL;
@@ -152,7 +152,7 @@ namespace dpi {
             IF_DEBUG_LOG(DBG_DDOS, NULL)
             {
                 if (likely(ipv4)) {
-                    DEBUG_LOG_NO_FILTER("alloc: type=%s peer="DBG_IPV4_FORMAT"\n",
+                    DEBUG_LOG_NO_FILTER("alloc: type=%s peer=" DBG_IPV4_FORMAT"\n",
                                         info->name, DBG_IPV4_TUPLE(m->peer_ip));
                 }
             }
@@ -216,7 +216,7 @@ namespace dpi {
 
         memset(&key, 0, sizeof(key));
         make_key(&key, type, ep_mac, peer_ip, ipv4);
-        m = rcu_map_lookup(&th_meter_map, &key);
+        m = (dpi_meter_t *)rcu_map_lookup(&th_meter_map, &key);
         if (unlikely(m == NULL)) return;
 
         timer_wheel_entry_refresh(&th_timer, &m->ts_entry, th_snap.tick);
@@ -330,11 +330,11 @@ namespace dpi {
                     if (th_snap.tick - m->last_log >= info->log_timeout && m->log_count > 0) {
                         if (likely(ipv4)) {
                             dpi_ddos_log(info->log_id, m,
-                                         "Session rate %u from "DBG_IPV4_FORMAT" exceeds the shreshold %u",
+                                         "Session rate %u from " DBG_IPV4_FORMAT" exceeds the shreshold %u",
                                          m->count, DBG_IPV4_TUPLE(m->peer_ip.ip4), info->lower_limit);
                         } else {
                             dpi_ddos_log(info->log_id, m,
-                                         "Session rate %u from "DBG_IPV6_FORMAT" exceeds the shreshold %u",
+                                         "Session rate %u from " DBG_IPV6_FORMAT" exceeds the shreshold %u",
                                          m->count, DBG_IPV6_TUPLE(m->peer_ip.ip6), info->lower_limit);
                         }
 
