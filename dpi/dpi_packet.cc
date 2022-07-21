@@ -1,3 +1,11 @@
+//
+// Created by tanchao on 2022/7/20.
+//
+
+#ifndef __DPI_PACKET_H__
+#define __DPI_PACKET_H__
+
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -14,10 +22,10 @@
 #include "apis.h"
 #include "base/helper.h"
 #include "base/bits.h"
+#include "base/debug.h"
 #include "dpi_module.h"
 #include "dpi_packet.h"
 #include "dpi_session.h"
-#include "base/debug.h"
 
 namespace dpi {
     #define LOG_BAD_PKT(p, format, args...) \
@@ -1336,3 +1344,5 @@ namespace dpi {
         }
     }
 }
+
+#endif

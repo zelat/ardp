@@ -7,9 +7,16 @@
 #include <netinet/ip6.h>
 #include "apis.h"
 #include "dpi_module.h"
+#include "dpi_session.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "base/rcu_map.h"
 #include "base/debug.h"
-#include "dpi_session.h"
+#ifdef __cplusplus
+}
+#endif
+
 
 namespace dpi {
 

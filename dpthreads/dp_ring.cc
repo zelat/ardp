@@ -10,14 +10,19 @@
 #include <cstdio>
 #include <unistd.h>
 #include <sys/mman.h>
+#include "libnetfilter_queue/libnetfilter_queue.h"
 
 #include "dp_types.h"
-#include "apis.h"
 #include "base.h"
-#include "base/helper.h"
-#include "libnetfilter_queue/libnetfilter_queue.h"
 #include "dp_ring.h"
-
+#include "apis.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "base/helper.h"
+#ifdef __cplusplus
+}
+#endif
 
 namespace dpthreads {
     void DP_Ring::dp_tx_flush(dp_context_t *ctx, int limit){
@@ -58,7 +63,7 @@ namespace dpthreads {
 
             dp_tx_flush(ctx, DEFAULT_PENDING_LIMIT);
         } else {
-            printf("TX queue full, status=0x%x Drop!\n", tp->tp_status);
+            printf("TX queue full, status=0x%lx Drop!\n", tp->tp_status);
 
             ctx->stats.tx_drops ++;
             ret = -1;

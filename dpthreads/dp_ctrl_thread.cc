@@ -5,15 +5,18 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <iostream>
-#include <base/utils/singleton.h>
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "base/helper.h"
 #include "base/bits.h"
 #include "base/rcu_map.h"
 #include "base/debug.h"
+#ifdef __cplusplus
+}
+#endif
 #include "apis.h"
 #include "dp_ctrl_thread.h"
-#include "dp_ctrl_handler.h"
 
 using namespace std;
 

@@ -18,8 +18,8 @@
 extern "C" {
 #include "base/debug.h"
 #include "base/rcu_map.h"
-#include "apis.h"
 }
+#include "apis.h"
 #include "dpi_module.h"
 #include "dpi_session.h"
 #include "dpi_log.h"
@@ -985,7 +985,7 @@ int dpi_rule_del_one(dpi_policy_hdl_t *hdl, dpi_rule_key_t *key_l, dpi_rule_key_
                 if (p->ep && !mac_zero(p->ep->pmac.ether_addr_octet)) {
                     pbuf = rcu_map_lookup(&g_ep_map, &p->ep->pmac);
                     if (pbuf) {
-                        pep = GET_EP_FROM_MAC_MAP(pbuf);
+                        pep = GET_EP_FROM_MAC_MAP((uint8_t *)pbuf);
                         phdl = (dpi_policy_hdl_t *) pep->policy_hdl;
                         if (phdl) {
                             DEBUG_POLICY("switch policy hdl(%p) to proxymesh orig hdl(%p)\n", hdl, phdl);
@@ -1001,7 +1001,7 @@ int dpi_rule_del_one(dpi_policy_hdl_t *hdl, dpi_rule_key_t *key_l, dpi_rule_key_
             xff = true;
             if (s->xff_app == 0) {
                 //no X-Forwarded-Proto in header
-                s->xff_app = s->app ? s->app : (s->base_app ? s->base_app : DP_POLICY_APP_UNKNOWN);
+                s->xff_app = s->app ? s->app : (s->base_app ? s->base_app : (uint16_t)DP_POLICY_APP_UNKNOWN);
             }
             if (dstlo) {
                 //in service mesh's case, if dst ip is lo ip we need to
@@ -1091,7 +1091,7 @@ int dpi_rule_del_one(dpi_policy_hdl_t *hdl, dpi_rule_key_t *key_l, dpi_rule_key_
             DEBUG_POLICY("cannot find mac: " DBG_MAC_FORMAT "\n", DBG_MAC_TUPLE(ep_mac));
             return 0;
         }
-        ep = GET_EP_FROM_MAC_MAP(buf);
+        ep = GET_EP_FROM_MAC_MAP((uint8_t *)buf);
 
         sip = s->client.ip.ip4;
         dip = s->server.ip.ip4;
@@ -1169,7 +1169,7 @@ static void dpi_policy_set_session_reeval()
             DEBUG_POLICY("cannot find mac: " DBG_MAC_FORMAT "\n", DBG_MAC_TUPLE(*mac_addr));
             return -1;
         }
-        ep = GET_EP_FROM_MAC_MAP(buf);
+        ep = GET_EP_FROM_MAC_MAP((uint8_t *)buf);
 
         old = (dpi_policy_hdl_t *) ep->policy_hdl;
         if (hdl) {

@@ -5,6 +5,8 @@
 #ifndef ARDP_DPI_PACKET_H
 #define ARDP_DPI_PACKET_H
 
+#include <netinet/ip.h>
+#include <netinet/ip6.h>
 #include "apis.h"
 #include "base/helper.h"
 #include "dpi/sig/dpi_sig.h"

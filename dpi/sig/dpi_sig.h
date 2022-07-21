@@ -8,8 +8,11 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdarg.h>
-#include <pcre2.h>
 #include "dpi_hyperscan.h"
+
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
+
 
 namespace dpi {
     #define PCRE2_CODE_UNIT_WIDTH 8
@@ -157,7 +160,7 @@ namespace dpi {
 
         struct {
             uint8_t *string;           /*pcre signature*/
-            pcre2_code_8 *recompiled;    /*pcre compiled database*/
+            pcre2_code *recompiled;    /*pcre compiled database*/
             struct hs_database *hs_db; /* hyperscan database */
             int hs_flags;              /* hyperscan flags used for compile */
             int hs_noconfirm;          /* hyperscan matches don't need confirm */

@@ -15,7 +15,7 @@ namespace dpi {
                 per_src: 1;
         uint8_t timeout;
         uint8_t log_timeout;
-        uint8_t span; // If rate reaches 'limit' in 'span' of seconds, for example 100 in 10 seconds
+        uint8_t span;    // If rate reaches 'limit' in 'span' of seconds, for example 100 in 10 seconds
         uint32_t upper_limit;
         uint32_t lower_limit;
     } meter_info_t;

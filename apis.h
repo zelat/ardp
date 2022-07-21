@@ -12,8 +12,8 @@
 #include <pthread.h>
 #include <net/ethernet.h>
 
-#include "jansson.h"
-#include "urcu/list.h"
+#include <jansson.h>
+#include <urcu/list.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -244,9 +244,9 @@ void dpi_count_session(DPMsgSessionCount *c);
 void dpi_get_stats(io_stats_t *stats, dpi_stats_callback_fct cb);
 
 
-#define GET_EP_FROM_MAC_MAP(buf)  (io_ep_t *)(buf + sizeof(io_mac_t) * 3)
+#define GET_EP_FROM_MAC_MAP(buf) (io_ep_t *)(buf + sizeof(io_mac_t) * 3)
 //template <typename T>
-//io_ep_t * GET_EP_FROM_MAC_MAP(T &buf){
+//io_ep_t * GET_EP_FROM_MAC_MAP(T const& buf){
 //    return (buf + sizeof(io_mac_t) * 3);
 //}
 

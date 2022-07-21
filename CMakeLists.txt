@@ -13,8 +13,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fexec-charset=GBK -std=c++11")
-set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fexec-charset=GBK -std=c99")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -std=c++11 -Werror -Wno-unused-result -Wno-unused-function -fstrict-aliasing -Wstrict-aliasing -g")
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 
 include(cmake/Modules/libnetfilter_queue.cmake)
 include(cmake/Modules/pcap-1.9.0.cmake)
@@ -22,8 +22,6 @@ include(cmake/Modules/userspace-rcu-0.13.1.cmake)
 include(cmake/Modules/jansson-2.14.cmake)
 include(cmake/Modules/pcre2-10.40.cmake)
 include(cmake/Modules/hyperscan-5.4.0.cmake)
-#编译时候的选项
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Werror -Wno-unused-result -Wno-unused-function -fstrict-aliasing -Wstrict-aliasing -g")
 
 set(CMAKE_BUILD_TYPE "Release")
 # PROJECT_SOURCE_DIR指的是工程顶层目录
