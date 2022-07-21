@@ -11,7 +11,6 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <net/ethernet.h>
-
 #include <jansson.h>
 #include <urcu/list.h>
 #ifdef __cplusplus
@@ -23,6 +22,7 @@ extern "C" {
 }
 #endif
 #include "defs.h"
+#include "dpi/dpi_entry.h"
 
 #define MAX_THREAD_NAME_LEN 32
 extern __thread int THREAD_ID;
@@ -234,7 +234,7 @@ typedef void (*dpi_stats_callback_fct)(io_stats_t *stats, io_stats_t *s);
 // in
 void dpi_setup(io_callback_t *cb, io_config_t *cfg);
 void dpi_init(int reason);
-int dpi_recv_packet(io_ctx_t *context, uint8_t *pkt, int len);
+extern int dpi_recv_packet(io_ctx_t *context, uint8_t *pkt, int len);
 void dpi_timeout(uint32_t tick);
 
 void dpi_handle_ctrl_req(int req, io_ctx_t *context);

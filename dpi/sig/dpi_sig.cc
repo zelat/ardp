@@ -4,6 +4,3 @@
 
 #include "dpi_sig.h"
 
-namespace dpi {
-    
-}

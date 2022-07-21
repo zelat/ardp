@@ -47,7 +47,7 @@ target_sources(base
         )
 target_link_libraries(base urcu urcu-cds)
 
-add_library(dpi "" dpi/sig/dpi_hyperscan.h)
+add_library(dpi "")
 target_sources(dpi
         PRIVATE
         "${CMAKE_SOURCE_DIR}/dpi/dpi_entry.cc"

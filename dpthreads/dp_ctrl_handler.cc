@@ -12,7 +12,3 @@
 #include "dp_ctrl_handler.h"
 
 using namespace  std;
-
-namespace dpthreads{
-
-}

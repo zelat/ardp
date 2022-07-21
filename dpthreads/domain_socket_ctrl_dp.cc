@@ -19,57 +19,54 @@ extern "C" {
 #include "base/config/config.h"
 #include "domain_socket_ctrl_dp.h"
 
-namespace dpthreads {
-    int DomainSocketDPServer::Init() {
-        const char *server_name(DP_SERVER_SOCK);
-        if((ctrl_fd = Connect(server_name)) < 0)
-        {
-            std::cout << "DomainSocketClient" <<  "Connect to server failed." << std::endl;
-        }
-        return ctrl_fd;
+int DomainSocketDPServer::Init() {
+    const char *server_name(DP_SERVER_SOCK);
+    if ((ctrl_fd = Connect(server_name)) < 0) {
+        std::cout << "DomainSocketClient" << "Connect to server failed." << std::endl;
+    }
+    return ctrl_fd;
+}
+
+void DomainSocketDPServer::Exit() {
+    if (ctrl_fd > 0) {
+        close(ctrl_fd);
+    }
+}
+
+
+int DomainSocketDPServer::Connect(const char *filename) {
+    struct sockaddr_un name;
+    int sock;
+    size_t size;
+
+    /* create a Unix domain stream socket */
+    sock = socket(PF_UNIX, SOCK_DGRAM, 0);
+    if (sock < 0) {
+        return -1;
     }
 
-    void DomainSocketDPServer::Exit(){
-        if(ctrl_fd > 0){
-            close(ctrl_fd);
-        }
+    name.sun_family = AF_UNIX;
+    strlcpy(name.sun_path, filename, sizeof(name.sun_path));
+
+    size = (offsetof(struct sockaddr_un, sun_path) + strlen(name.sun_path));
+    /* bind the name to the descriptor */
+    if (bind(sock, (struct sockaddr *) &name, size) < 0) {
+        return -1;
     }
 
+    return sock;
+}
 
-    int DomainSocketDPServer::Connect(const char *filename) {
-        struct sockaddr_un name;
-        int sock;
-        size_t size;
+int DomainSocketDPServer::SendBinary(void *data, int len) {
+    socklen_t addr_len = sizeof(struct sockaddr_un);
+    int sent = sendto(ctrl_fd, data, len, 0,
+                      (struct sockaddr *) &client_addr, addr_len);
+    return sent;
+}
 
-        /* create a Unix domain stream socket */
-        sock = socket(PF_UNIX, SOCK_DGRAM, 0);
-        if (sock < 0) {
-            return -1;
-        }
-
-        name.sun_family = AF_UNIX;
-        strlcpy(name.sun_path, filename, sizeof(name.sun_path));
-
-        size = (offsetof(struct sockaddr_un, sun_path) + strlen(name.sun_path));
-        /* bind the name to the descriptor */
-        if (bind(sock, (struct sockaddr *) &name, size) < 0) {
-            return -1;
-        }
-
-        return sock;
-    }
-
-    int DomainSocketDPServer::SendBinary(void *data, int len){
-        socklen_t addr_len = sizeof(struct sockaddr_un);
-        int sent = sendto(ctrl_fd, data, len, 0,
-                                (struct sockaddr *)&client_addr , addr_len);
-        return sent;
-    }
-
-    int DomainSocketDPServer::ReceiveBinary(void *data, int len){
-        socklen_t addr_len = sizeof(struct sockaddr_un);;
-        int receive = recvfrom(ctrl_fd, data, len, 0,
-                               (struct sockaddr *)&client_addr, &addr_len);
-        return receive;
-    }
+int DomainSocketDPServer::ReceiveBinary(void *data, int len) {
+    socklen_t addr_len = sizeof(struct sockaddr_un);;
+    int receive = recvfrom(ctrl_fd, data, len, 0,
+                           (struct sockaddr *) &client_addr, &addr_len);
+    return receive;
 }

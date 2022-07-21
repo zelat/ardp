@@ -13,9 +13,7 @@
 #include "domain_socket_ctrl_notify.h"
 #include "dp_event_cb.h"
 
-namespace dpthreads {
     class DP_CTRL_Handler : public base::Singleton<DP_CTRL_Handler>{
     };
-}
 
 #endif //ARDP_DP_CTRL_HANDLER_H
