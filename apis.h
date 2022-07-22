@@ -13,6 +13,7 @@
 #include <net/ethernet.h>
 #include "jansson.h"
 #include "urcu/list.h"
+#include "defs.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,7 +22,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "defs.h"
 
 #define MAX_THREAD_NAME_LEN 32
 extern __thread int THREAD_ID;
@@ -403,10 +403,10 @@ void dp_dlp_destroy(void *dlp_detector);
 #define CTRL_DLP_REQ_TIMEOUT 2
 
 /* 互斥量 */
-//extern pthread_cond_t g_ctrl_req_cond;
-//extern pthread_mutex_t g_ctrl_req_lock;
+extern pthread_cond_t g_ctrl_req_cond;
+extern pthread_mutex_t g_ctrl_req_lock;
 extern int dp_data_wait_ctrl_req_thr(int req, int thr_id);
-//extern pthread_cond_t g_dlp_ctrl_req_cond;
-//extern pthread_mutex_t g_dlp_ctrl_req_lock;
+extern pthread_cond_t g_dlp_ctrl_req_cond;
+extern pthread_mutex_t g_dlp_ctrl_req_lock;
 extern int dp_dlp_wait_ctrl_req_thr(int req);
 #endif //ARDP_APIS_H

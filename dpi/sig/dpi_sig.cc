@@ -1,7 +1,6 @@
 #include "dpi/sig/dpi_sig.h"
 #include "dpi/sig/dpi_search.h"
 #include "dpi/dpi_module.h"
-#include "dpi/dpi_debug.h"
 
 uint32_t DlpRuleCount = 0;
 
@@ -13,7 +12,8 @@ dpi_dlp_parse_opts_routine(dpi_dlp_parser_t *parser, char **opts, int count,
                             dpi_sig_t *rule, void *dlpdetector);
 
 static dpi_dlp_parser_t DlpRuleParser = {
-    .parse_dlpopts =     dpi_dlp_parse_opts_routine,
+        .dlprulelist = {nullptr},
+        .parse_dlpopts =  dpi_dlp_parse_opts_routine,
 };
 
 static dpi_sigopt_status_t

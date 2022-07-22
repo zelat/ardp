@@ -3,7 +3,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "base/debug.h"
 #include "base/rcu_map.h"
 #include "base/timer_wheel.h"
 #include "base/helper.h"
@@ -12,10 +11,6 @@ extern "C" {
 #endif
 
 #include "dpi_module.h"
-#include "dpi_session.h"
-#include "dpi_meter.h"
-#include "dpi_log.h"
-#include "dpi_debug.h"
 
 void log_common(DPMsgThreatLog *log, int idx);
 

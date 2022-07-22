@@ -15,7 +15,14 @@
 #include "dp_types.h"
 #include "apis.h"
 #include "base.h"
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 #include "base/helper.h"
+#ifdef __cplusplus
+}
+#endif
 #include "libnetfilter_queue/libnetfilter_queue.h"
 #include "dp_ring.h"
 

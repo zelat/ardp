@@ -5,20 +5,17 @@
 #ifndef ARDP_DPI_SESSION_H
 #define ARDP_DPI_SESSION_H
 
-#include <linux/if_ether.h>
-#include "urcu/rculfhash.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "base/timer_wheel.h"
 #include "base/bits.h"
 #include "base/asm.h"
 #include "base/debug.h"
+#include "base/rcu_map.h"
 #ifdef __cplusplus
 }
 #endif
-#include "apis.h"
-#include "dpi/dpi_policy.h"
+#include "dpi_policy.h"
 #include "dpi_packet.h"
 
 

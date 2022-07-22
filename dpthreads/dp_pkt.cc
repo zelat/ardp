@@ -3,6 +3,7 @@
 //
 
 #include <base/config/config.h>
+#include <unistd.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -17,6 +18,11 @@ extern "C"
 #include "dp_types.h"
 #include "urcu/hlist.h"
 #include "dp_ring.h"
+#include "apis.h"
+#include "base/debug.h"
+#include "base.h"
+
+extern dp_mnt_shm_t *g_shm;
 
 #define INLINE_BLOCK 2048
 #define INLINE_BATCH 4096
@@ -24,8 +30,16 @@ extern "C"
 #define TAP_BATCH 256
 #define INLINE_BLOCK_NOTC 512
 #define INLINE_BATCH_NOTC 1024
-#define NFQ_BLOCK 128                                         //max q length
+#define NFQ_BLOCK 128//max q length
 #define NFQ_BATCH 128
+// For a context in free list, usually it can be release when all packets in the queue
+// are processed, but there are cases that sessions send out RST after idling some
+// time, ctx_inline is used in that case, so we can recycle pretty quickly.
+#define RELEASED_CTX_TIMEOUT 5      // 10 second
+#define RELEASED_CTX_PRUNE_FREQ 5   // 10 second
+#define DP_STATS_FREQ 60            // 1 minute
+
+#define MAX_EPOLL_EVENTS 128
 
 dp_thread_data_t g_dp_thread_data[MAX_DP_THREADS];
 
@@ -36,6 +50,17 @@ dp_thread_data_t g_dp_thread_data[MAX_DP_THREADS];
 #define th_ctrl_dp_lock(thr_id)  (g_dp_thread_data[thr_id].ctrl_dp_lock)
 #define th_ctrl_req_evfd(thr_id) (g_dp_thread_data[thr_id].ctrl_req_evfd)
 #define th_ctrl_req(thr_id)      (g_dp_thread_data[thr_id].ctrl_req)
+
+int bld_dlp_epoll_fd;
+int bld_dlp_ctrl_req_evfd;
+uint32_t bld_dlp_ctrl_req;
+
+
+int dp_open_socket(dp_context_t *ctx, const char *iface, bool tap, bool tc, uint blocks, uint batch);
+void dp_close_socket(dp_context_t *ctx);
+int dp_rx(dp_context_t *ctx, uint32_t tick);
+void dp_get_stats(dp_context_t *ctx);
+int dp_open_nfq_handle(dp_context_t *ctx, bool jumboframe, uint blocks, uint batch);
 
 //    int dp_open_socket(dp_context_t *ctx, const char *iface, bool tap, bool tc, uint blocks, uint batch);
 DP_Ring dpRing;
@@ -67,6 +92,31 @@ dp_alloc_context(const char *iface, int thr_id, bool tap, bool jumboframe, uint 
 
     return ctx;
 }
+
+/* This function can only be called by dp_dlp_wait_ctrl_req_thr() */
+static int dp_ctrl_wait_dlp_threads()
+{
+    int rc = 0;
+
+    while (1) {
+        struct timespec ts;
+
+        clock_gettime(CLOCK_REALTIME, &ts);
+        ts.tv_sec += CTRL_DLP_REQ_TIMEOUT;
+
+        rc = pthread_cond_timedwait(&g_dlp_ctrl_req_cond, &g_dlp_ctrl_req_lock, &ts);
+        if (rc == 0) {
+            break;
+        }
+        if (rc == ETIMEDOUT) {
+            DEBUG_CTRL("timeout: wait dlp thread\n");
+            break;
+        }
+    }
+
+    return rc;
+}
+
 
 int dp_data_add_port(const char *iface, bool jumboframe, int thr_id) {
     int ret = 0;
@@ -101,4 +151,25 @@ int dp_data_add_port(const char *iface, bool jumboframe, int thr_id) {
 
     pthread_mutex_unlock(&th_ctrl_dp_lock(thr_id));
     return ret;
+}
+
+int dp_dlp_wait_ctrl_req_thr(int req)
+{
+    uint64_t w = 1;
+    ssize_t s;
+    int rc = 0;
+
+    DEBUG_CTRL("dlp req=%d\n", req);
+
+    pthread_mutex_lock(&g_dlp_ctrl_req_lock);
+    bld_dlp_ctrl_req = req;
+    s  = write(bld_dlp_ctrl_req_evfd, &w, sizeof(uint64_t));
+    if (s != sizeof(uint64_t)) {
+        pthread_mutex_unlock(&g_dlp_ctrl_req_lock);
+        return -1;
+    }
+    rc = dp_ctrl_wait_dlp_threads();
+    bld_dlp_ctrl_req = 0;
+    pthread_mutex_unlock(&g_dlp_ctrl_req_lock);
+    return rc;
 }

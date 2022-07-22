@@ -2,6 +2,7 @@
 #define __DP_BITS_H__
 
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 
 #define INDEX2MASK(index) (1 << (index))

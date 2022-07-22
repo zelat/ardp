@@ -15,7 +15,7 @@ extern "C" {
 }
 #endif
 
-#include "dpi/sig/test_dpi_hs_search.h"
+//#include "dpi/sig/test_dpi_hs_search.h"
 #include "dpthreads/dp_ctrl_thread.h"
 
 __thread int THREAD_ID;           //线程局部存储

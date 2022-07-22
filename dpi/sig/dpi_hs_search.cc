@@ -1,9 +1,6 @@
 #include "dpi/dpi_module.h"
 #include "dpi/sig/dpi_hyperscan_common.h"
 #include "dpi/sig/dpi_search.h"
-#include "dpi/dpi_debug.h"
-#include "hs.h"
-#include "base/debug.h"
 #include "base/config/config.h"
 
 #define INITIAL_PATTERN_ARRAY_ALLOC_SIZE 10

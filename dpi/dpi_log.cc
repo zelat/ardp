@@ -9,11 +9,14 @@
 #include <netinet/udp.h>
 #include <netinet/ip_icmp.h>
 #include <netinet/icmp6.h>
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "base/helper.h"
-#include "base/debug.h"
+#ifdef __cplusplus
+}
+#endif
 #include "dpi_log.h"
-#include "dpi_debug.h"
 
 
 extern bool cmp_mac_prefix(void *m1, const char *prefix);

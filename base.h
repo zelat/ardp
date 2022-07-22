@@ -7,6 +7,8 @@
 
 #include <inttypes.h>
 #include "defs.h"
+#include "base/config/config.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -44,4 +46,10 @@ typedef struct rate_limiter_ {
 
 extern int g_stats_slot;
 time_t get_current_time();
+
+
+typedef struct dp_mnt_shm_ {
+    uint32_t dp_hb[MAX_DP_THREADS];
+    bool dp_active[MAX_DP_THREADS];
+} dp_mnt_shm_t;
 #endif //DPI_TEST_BASE_H

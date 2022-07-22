@@ -3,10 +3,6 @@
 #include "dpi/sig/dpi_sig.h"
 #include "dpi/dpi_module.h"
 #include "dpi/sig/dpi_search.h"
-#include "base/debug.h"
-#include "dpi/dpi_debug.h"
-#define PCRE2_CODE_UNIT_WIDTH 8
-#include <pcre2.h>
 
 int dpi_sigopt_get_pcre (void *context, dpi_sig_context_class_t *c, uint8_t **pcre, uint32_t *hs_flags)
 {
@@ -77,8 +73,12 @@ static dpi_sigopt_status_t dpi_sigopt_context_parser (char *value, dpi_sig_t *si
 }
 
 dpi_sigopt_api_t SIGOPTContext = {
-    .type =     DPI_SIGOPT_CONTEXT,
-    .parser =   dpi_sigopt_context_parser,
+    .type =    DPI_SIGOPT_CONTEXT,
+    .value = nullptr,
+    .parser =  dpi_sigopt_context_parser,
+    .handler = nullptr,
+    .dump = nullptr,
+    .release = nullptr,
 };
 
 dpi_sigopt_api_t *dpi_sigopt_context_register (void)
@@ -248,7 +248,7 @@ static int dpi_sigopt_pcre_handler (void *context, dpi_packet_t *pkt, dpi_sig_t 
     dpi_sigopt_pcre_pattern_t *data = (dpi_sigopt_pcre_pattern_t *)context;
     dpi_sig_context_type_t t;
 
-    t = (pkt->dlp_pat_context == DPI_SIG_CONTEXT_TYPE_MAX) ? data->type : pkt->dlp_pat_context;
+    t = (dpi_sig_context_type_t)((pkt->dlp_pat_context == DPI_SIG_CONTEXT_TYPE_MAX) ? data->type : pkt->dlp_pat_context);
 
     if ((data->pcre.hs_noconfirm || !(data->pcre.hs_flags & HS_FLAG_PREFILTER)) &&
         !(FLAGS_TEST(data->flags, DPI_SIGOPT_PAT_FLAG_NEGATIVE)) &&
@@ -537,10 +537,12 @@ static dpi_sigopt_status_t dpi_sigopt_pcre_parser (char *value, dpi_sig_t *sig)
 }
 
 dpi_sigopt_api_t SIGOPTIONPcre = {
-    .type =     DPI_SIGOPT_PCRE,
-    .parser =   dpi_sigopt_pcre_parser,
-    .handler =  dpi_sigopt_pcre_handler,
-    .release =  dpi_sigopt_pcre_pattern_release,
+    .type =    DPI_SIGOPT_PCRE,
+    .value = nullptr,
+    .parser =  dpi_sigopt_pcre_parser,
+    .handler = dpi_sigopt_pcre_handler,
+    .dump = nullptr,
+    .release = dpi_sigopt_pcre_pattern_release,
 };
 
 dpi_sigopt_api_t *dpi_sigopt_pcre_register (void)

@@ -20,7 +20,6 @@
 #include "dpi/sig/dpi_hyperscan_common.h"
 #include "dpi/dpi_module.h"
 #include "dpi/sig/dpi_search.h"
-#include "hs.h"
 
 static void ActivateScratch(hs_scratch_t **build_scratch,
                             hs_scratch_t **scan_scratch) {

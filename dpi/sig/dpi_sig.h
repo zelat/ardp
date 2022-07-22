@@ -5,7 +5,6 @@
 extern "C" {
 #endif
 #include "base/bits.h"
-#include "base/debug.h"
 #ifdef __cplusplus
 }
 #endif

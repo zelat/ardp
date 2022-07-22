@@ -8,10 +8,10 @@
 #include "hs.h"
 #include "base/debug.h"
 #include "dpi_hyperscan.h"
+#include "dpi_search.h"
 
 #define INITIAL_PATTERN_ARRAY_ALLOC_SIZE 10
 
-using namespace std;
 
 class test_dpi_hs_search {
 private:

@@ -1,13 +1,15 @@
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 #include <netinet/ip_icmp.h>
-
-#include "base/debug.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "base/helper.h"
+#ifdef __cplusplus
+}
+#endif
 #include "dpi/sig/dpi_sig.h"
 #include "dpi/dpi_module.h"
-#include "dpi/dpi_debug.h"
-
 
 #define DPI_DLIMTS "<>()#\"'"
 #define MAX_SIG_NAME_LEN 512 + 10
@@ -30,8 +32,12 @@ static dpi_sigopt_status_t dpi_sigopt_sig_id_parser (char *value, dpi_sig_t *sig
 }
 
 static dpi_sigopt_api_t SIGOPTSigID = {
-    .type =    DPI_SIGOPT_SIG_ID,
-    .parser =  dpi_sigopt_sig_id_parser,
+    .type =  DPI_SIGOPT_SIG_ID,
+    .value = nullptr,
+    .parser = dpi_sigopt_sig_id_parser,
+    .handler = nullptr,
+    .dump = nullptr,
+    .release = nullptr,
 };
 
 dpi_sigopt_api_t *dpi_sigopt_sig_id_register (void)
@@ -78,8 +84,12 @@ static dpi_sigopt_status_t dpi_sigopt_name_parser (char *value, dpi_sig_t *sig)
 }
 
 static dpi_sigopt_api_t SIGOPTName = {
-    .type =    DPI_SIGOPT_NAME,
-    .parser =  dpi_sigopt_name_parser,
+    .type =   DPI_SIGOPT_NAME,
+    .value = nullptr,
+    .parser = dpi_sigopt_name_parser,
+    .handler = nullptr,
+    .dump = nullptr,
+    .release = nullptr,
 };
 
 dpi_sigopt_api_t *dpi_sigopt_name_register (void)

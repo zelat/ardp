@@ -3,9 +3,20 @@
 
 #include <stdint.h>
 #include <time.h>
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 #include "base/rcu_map.h"
 #include "base/timer_wheel.h"
-#include "dpi_packet.h"
+#ifdef __cplusplus
+}
+#endif
+#include "dpi/dpi_packet.h"
+#include "dpi/dpi_session.h"
+#include "dpi/dpi_debug.h"
+#include "dpi/dpi_log.h"
+#include "dpi/dpi_policy.h"
 #include "apis.h"
 
 extern rcu_map_t g_ep_map;

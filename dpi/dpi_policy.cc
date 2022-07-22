@@ -15,12 +15,15 @@
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 #include "urcu.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "base/debug.h"
 #include "base/rcu_map.h"
+#ifdef __cplusplus
+}
+#endif
 #include "dpi_module.h"
-#include "dpi_session.h"
-#include "apis.h"
-#include "dpi_log.h"
 
 dpi_fqdn_hdl_t *g_fqdn_hdl = NULL;
 
@@ -998,7 +1001,7 @@ int dpi_policy_reeval(dpi_packet_t *p, bool to_server) {
         xff = true;
         if (s->xff_app == 0) {
             //no X-Forwarded-Proto in header
-            s->xff_app = s->app ? s->app : (s->base_app ? s->base_app : DP_POLICY_APP_UNKNOWN);
+            s->xff_app = s->app ? s->app : (s->base_app ? s->base_app : (uint16_t)DP_POLICY_APP_UNKNOWN);
         }
         if (dstlo) {
             //in service mesh's case, if dst ip is lo ip we need to

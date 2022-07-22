@@ -20,7 +20,13 @@
 #include <apis.h>
 
 #include "apis.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "base/helper.h"
+#ifdef __cplusplus
+}
+#endif
 #include "dpi/sig/dpi_sig.h"
 
 

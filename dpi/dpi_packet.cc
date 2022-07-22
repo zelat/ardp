@@ -16,16 +16,12 @@ extern "C" {
 #endif
 #include "base/helper.h"
 #include "base/bits.h"
-#include "base/debug.h"
 #ifdef __cplusplus
 }
 #endif
 #include "apis.h"
 #include "dpi_module.h"
-#include "dpi_packet.h"
-#include "dpi_session.h"
-#include "dpi_debug.h"
-#include "dpi_log.h"
+
 
 #define LOG_BAD_PKT(p, format, args...) \
             dpi_threat_trigger(DPI_THRT_BAD_PACKET, p, format, ##args)

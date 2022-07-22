@@ -1,12 +1,10 @@
 #include <netinet/ip_icmp.h>
 #include <netinet/icmp6.h>
 
-#include "base/debug.h"
-#include "base/bits.h"
+#include <netinet/ip_icmp.h>
+#include <netinet/icmp6.h>
+
 #include "dpi/sig/dpi_search.h"
-#include "dpi/dpi_session.h"
-#include "dpi/dpi_log.h"
-#include "dpi/dpi_debug.h"
 
 extern dpi_sig_search_api_t *dpi_dlp_hs_search_register (void);
 extern bool cmp_mac_prefix(void *m1, void *prefix);
@@ -674,7 +672,7 @@ static void dpi_sift_matchs (dpi_packet_t *p)
 {
     //DEBUG_LOG_FUNC_ENTRY(DBG_DETECT,NULL);
 
-    bool isproxymesh = cmp_mac_prefix(p->ep_mac, PROXYMESH_MAC_PREFIX);
+    bool isproxymesh = cmp_mac_prefix(p->ep_mac, (char *)PROXYMESH_MAC_PREFIX);
 
     int i;
     dpi_sig_user_t *best_user;
@@ -726,7 +724,7 @@ bool dpi_waf_ep_policy_check (dpi_packet_t *p) {
 
     io_ep_t *ep = p->ep;
     dpi_detector_t *dlp_detector = (dpi_detector_t *)ep->dlp_detector;
-    bool isproxymesh = cmp_mac_prefix(p->ep_mac, PROXYMESH_MAC_PREFIX);
+    bool isproxymesh = cmp_mac_prefix(p->ep_mac, (char *)PROXYMESH_MAC_PREFIX);
     io_dlp_ruleid_t key;
     dpi_session_t *sess = p->session;
     key.rid = sess->policy_desc.id;
@@ -785,7 +783,7 @@ bool dpi_dlp_ep_policy_check (dpi_packet_t *p) {
 
     io_ep_t *ep = p->ep;
     dpi_detector_t *dlp_detector = (dpi_detector_t *)ep->dlp_detector;
-    bool isproxymesh = cmp_mac_prefix(p->ep_mac, PROXYMESH_MAC_PREFIX);
+    bool isproxymesh = cmp_mac_prefix(p->ep_mac, (char *)PROXYMESH_MAC_PREFIX);
     io_dlp_ruleid_t key;
     dpi_session_t *sess = p->session;
     key.rid = sess->policy_desc.id;

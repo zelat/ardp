@@ -5,7 +5,6 @@
 #ifndef ARDP_DPI_POLICY_H
 #define ARDP_DPI_POLICY_H
 
-#include <stdint.h>
 #include "dpi_packet.h"
 
 typedef struct dpi_rule_key_ {

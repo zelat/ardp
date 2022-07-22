@@ -15,7 +15,6 @@
 #include <base/debug.h>
 
 #include "dpi_module.h"
-#include "dpi_session.h"
 
 bool debug_log_packet_filter(const dpi_packet_t *p) {
     if (p == NULL) return true;

@@ -65,6 +65,8 @@ target_link_libraries(base ${URCU_LIBRARY})
 add_library(dpi "")
 target_sources(dpi
         PRIVATE
+        "${CMAKE_SOURCE_DIR}/dpi/dpi_parser.cc"
+        "${CMAKE_SOURCE_DIR}/dpi/dpi_frag.cc"
         "${CMAKE_SOURCE_DIR}/dpi/dpi_entry.cc"
         "${CMAKE_SOURCE_DIR}/dpi/dpi_packet.cc"
         "${CMAKE_SOURCE_DIR}/dpi/dpi_session.cc"
@@ -78,6 +80,8 @@ target_sources(dpi
         "${CMAKE_SOURCE_DIR}/dpi/sig/dpi_search.cc"
         "${CMAKE_SOURCE_DIR}/dpi/sig/dpi_sigopt_basic.cc"
         "${CMAKE_SOURCE_DIR}/dpi/sig/dpi_sigopt_pcre.cc"
+        "${CMAKE_SOURCE_DIR}/dpi/parsers/dpi_http.cc"
+        "${CMAKE_SOURCE_DIR}/dpi/parsers/dpi_sqlinjection.cc"
         )
 target_link_libraries(dpi hs pcap jansson ${NFQ_LIBRARY})
 target_link_libraries(dpi base)
