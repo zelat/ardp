@@ -22,7 +22,6 @@ extern "C" {
 #include "apis.h"
 #include "dpi_module.h"
 
-
 #define LOG_BAD_PKT(p, format, args...) \
             dpi_threat_trigger(DPI_THRT_BAD_PACKET, p, format, ##args)
 

@@ -2,7 +2,14 @@
 #define __DPI_SEARCH_H__
 
 #include "dpi/sig/dpi_sig.h"
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 #include "base/helper.h"
+#ifdef __cplusplus
+}
+#endif
 #include "dpi/dpi_module.h"
 #include "dpi/sig/dpi_hyperscan.h"
 

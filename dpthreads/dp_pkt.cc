@@ -10,6 +10,7 @@ extern "C"
 {
 #endif
 #include "base/helper.h"
+#include "base/debug.h"
 #ifdef __cplusplus
 }
 #endif
@@ -19,7 +20,6 @@ extern "C"
 #include "urcu/hlist.h"
 #include "dp_ring.h"
 #include "apis.h"
-#include "base/debug.h"
 #include "base.h"
 
 extern dp_mnt_shm_t *g_shm;

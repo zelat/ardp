@@ -1,8 +1,6 @@
 #include <string.h>
 
 #include "dpi/dpi_module.h"
-#include "dpi_session.h"
-#include "dpi_debug.h"
 
 int dpi_parser_2_app[DPI_PARSER_MAX] = {
         dpi_parser_2_app[DPI_PARSER_HTTP]  =     DPI_APP_HTTP,

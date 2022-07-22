@@ -19,7 +19,6 @@
 #include <netinet/icmp6.h>
 #include <apis.h>
 
-#include "apis.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -31,28 +30,6 @@ extern "C" {
 
 
 #define DPI_MAX_PKT_LEN 65536
-
-#define DPI_PKT_FLAG_SACKOK        0x00000001
-#define DPI_PKT_FLAG_TCP_TS        0x00000002
-#define DPI_PKT_FLAG_CLIENT        0x00000004
-#define DPI_PKT_FLAG_NEW_SESSION   0x00000008
-#define DPI_PKT_FLAG_ASSEMBLED     0x00000010
-#define DPI_PKT_FLAG_CACHED        0x00000020
-#define DPI_PKT_FLAG_SKIP_PARSER   0x00000040
-#define DPI_PKT_FLAG_SKIP_PATTERN  0x00000080
-#define DPI_PKT_FLAG_INGRESS       0x00000100
-#define DPI_PKT_FLAG_FAKE_EP       0x00000200
-#define DPI_PKT_FLAG_NOT_USED      0x00000400
-#define DPI_PKT_FLAG_LOG_MID       0x00000800
-#define DPI_PKT_FLAG_LOG_VIOLATE   0x00001000
-#define DPI_PKT_FLAG_LOG_XFF       0x00002000
-#define DPI_PKT_FLAG_LOG_XFF_VIO   0x00004000
-#define DPI_PKT_FLAG_DETECT_DLP    0x00008000
-#define DPI_PKT_FLAG_DETECT_WAF    0x00010000
-
-#define DPI_MAX_MATCH_RESULT     16
-#define DPI_MAX_MATCH_CANDIDATE  256
-#define DPI_MAX_ICMP_TYPE  256
 
 typedef enum dpi_tcp_options_ {
     TCP_OPT_EOL = 0,
@@ -84,6 +61,28 @@ typedef enum dpi_tcp_options_ {
     TCP_OPT_COMPRESSION,
     TCP_OPT_MAX,
 } dpi_tcp_options_t;
+
+#define DPI_PKT_FLAG_SACKOK        0x00000001
+#define DPI_PKT_FLAG_TCP_TS        0x00000002
+#define DPI_PKT_FLAG_CLIENT        0x00000004
+#define DPI_PKT_FLAG_NEW_SESSION   0x00000008
+#define DPI_PKT_FLAG_ASSEMBLED     0x00000010
+#define DPI_PKT_FLAG_CACHED        0x00000020
+#define DPI_PKT_FLAG_SKIP_PARSER   0x00000040
+#define DPI_PKT_FLAG_SKIP_PATTERN  0x00000080
+#define DPI_PKT_FLAG_INGRESS       0x00000100
+#define DPI_PKT_FLAG_FAKE_EP       0x00000200
+#define DPI_PKT_FLAG_NOT_USED      0x00000400
+#define DPI_PKT_FLAG_LOG_MID       0x00000800
+#define DPI_PKT_FLAG_LOG_VIOLATE   0x00001000
+#define DPI_PKT_FLAG_LOG_XFF       0x00002000
+#define DPI_PKT_FLAG_LOG_XFF_VIO   0x00004000
+#define DPI_PKT_FLAG_DETECT_DLP    0x00008000
+#define DPI_PKT_FLAG_DETECT_WAF    0x00010000
+
+#define DPI_MAX_MATCH_RESULT     16
+#define DPI_MAX_MATCH_CANDIDATE  256
+#define DPI_MAX_ICMP_TYPE  256
 
 struct dpi_wing_;
 struct dpi_session_;
@@ -135,7 +134,7 @@ typedef struct dpi_packet_ {
     uint32_t tcp_ts_value, tcp_ts_echo;
 
     uint32_t threat_id;
-    uint8_t action: 3,
+    uint8_t action:   3,
             severity: 3;  // record packet threat severity when session is not located, ex. ping death
     uint8_t pad[3];
 
@@ -180,89 +179,86 @@ typedef struct dpi_packet_ {
     dpi_match_candidate_t dlp_match_candidates[DPI_MAX_MATCH_CANDIDATE];
 } dpi_packet_t;
 
-static inline uint8_t *dpi_pkt_ptr(dpi_packet_t *p) {
+static inline uint8_t *dpi_pkt_ptr(dpi_packet_t *p)
+{
     return p->pkt_buffer->ptr;
 }
 
-static inline uint8_t *dpi_pkt_end(dpi_packet_t *p) {
+static inline uint8_t *dpi_pkt_end(dpi_packet_t *p)
+{
     return p->pkt_buffer->ptr + p->pkt_buffer->len;
 }
 
-static inline uint32_t dpi_pkt_seq(dpi_packet_t *p) {
+static inline uint32_t dpi_pkt_seq(dpi_packet_t *p)
+{
     return p->pkt_buffer->seq;
 }
 
-static inline uint32_t dpi_pkt_len(dpi_packet_t *p) {
+static inline uint32_t dpi_pkt_len(dpi_packet_t *p)
+{
     return p->pkt_buffer->len;
 }
 
-static inline uint32_t dpi_pkt_end_seq(dpi_packet_t *p) {
+static inline uint32_t dpi_pkt_end_seq(dpi_packet_t *p)
+{
     return p->pkt_buffer->seq + dpi_pkt_len(p);
 }
 
-static inline uint16_t get_iph_len(struct iphdr *iph) {
+static inline uint16_t get_iph_len(struct iphdr *iph)
+{
     return iph->ihl << 2;
 }
 
-static inline uint16_t get_tcph_len(struct tcphdr *tcph) {
+static inline uint16_t get_tcph_len(struct tcphdr *tcph)
+{
     return tcph->doff << 2;
 }
 
-static inline bool dpi_is_ipv4(dpi_packet_t *p) {
+static inline bool dpi_is_ipv4(dpi_packet_t *p)
+{
     return p->eth_type == ETH_P_IP;
 }
 
-static inline void dpi_set_client_pkt(dpi_packet_t *p) {
+static inline void dpi_set_client_pkt(dpi_packet_t *p)
+{
     p->flags |= DPI_PKT_FLAG_CLIENT;
 }
 
-static inline bool dpi_is_client_pkt(dpi_packet_t *p) {
+static inline bool dpi_is_client_pkt(dpi_packet_t *p)
+{
     return (p->flags & DPI_PKT_FLAG_CLIENT) ? true : false;
 }
 
-static inline bool dpi_is_seq_in_pkt(dpi_packet_t *p, uint32_t seq) {
+static inline bool dpi_is_seq_in_pkt(dpi_packet_t *p, uint32_t seq)
+{
     return u32_distance(dpi_pkt_seq(p), seq) < dpi_pkt_len(p);
 }
 
-static inline uint32_t dpi_ptr_2_seq(dpi_packet_t *p, uint8_t *ptr) {
+static inline uint32_t dpi_ptr_2_seq(dpi_packet_t *p, uint8_t *ptr)
+{
     return dpi_pkt_seq(p) + (ptr - dpi_pkt_ptr(p));
 }
 
 uint16_t get_l4v6_cksum(struct ip6_hdr *ip6h, uint8_t ip_proto, void *l4_hdr, uint16_t l4_len);
-
 uint16_t get_l4v4_cksum(struct iphdr *iph, void *l4_hdr, uint16_t l4_len);
-
 uint16_t get_ip_cksum(struct iphdr *iph);
-
 char *get_tcp_flag_string(struct tcphdr *tcph, char *s);
 
 void dpi_set_action(dpi_packet_t *p, int act);
-
 bool dpi_is_action_final(dpi_packet_t *p, int act);
-
 int dpi_parse_ethernet(dpi_packet_t *p);
-
 int dpi_inspect_ethernet(dpi_packet_t *p);
 
 void dpi_frag_init(void);
-
 void dpi_frag_send(void *frag_trac, io_ctx_t *ctx);
-
 void dpi_frag_discard(void *frag_trac);
-
 void dpi_frag_trim(void);
-
 int dpi_ip_defrag(dpi_packet_t *p);
-
 int dpi_ipv6_defrag(dpi_packet_t *p);
 
 bool dpi_is_ip4_internal(uint32_t ip);
-
 uint8_t dpi_ip4_iptype(uint32_t ip);
-
 bool dpi_is_policy_addr(uint32_t ip);
-
-int dpi_recv_packet(io_ctx_t *context, uint8_t *pkt, int len);
 
 
 #endif //ARDP_DPI_PACKET_H

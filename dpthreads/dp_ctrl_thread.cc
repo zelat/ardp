@@ -25,6 +25,17 @@ extern "C"
 
 using namespace std;
 
+pthread_cond_t g_ctrl_req_cond;
+pthread_mutex_t g_ctrl_req_lock;
+pthread_cond_t g_dlp_ctrl_req_cond;
+pthread_mutex_t g_dlp_ctrl_req_lock;
+
+io_internal_subnet4_t *g_internal_subnet4;
+io_internal_subnet4_t *g_policy_addr;
+
+io_spec_internal_subnet4_t *g_specialip_subnet4;
+uint8_t g_xff_enabled = 0;
+
 extern int dp_data_add_port(const char *iface, bool jumboframe, int thr_id);
 
 static int conn4_match(struct cds_lfht_node *ht_node, const void *key) {

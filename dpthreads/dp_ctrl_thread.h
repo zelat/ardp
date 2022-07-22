@@ -50,17 +50,6 @@ typedef struct conn4_key_ {
     bool ingress;
 } conn4_key_t;
 
-pthread_cond_t g_ctrl_req_cond;
-pthread_mutex_t g_ctrl_req_lock;
-pthread_cond_t g_dlp_ctrl_req_cond;
-pthread_mutex_t g_dlp_ctrl_req_lock;
-
-io_internal_subnet4_t *g_internal_subnet4;
-io_internal_subnet4_t *g_policy_addr;
-
-io_spec_internal_subnet4_t *g_specialip_subnet4;
-uint8_t g_xff_enabled = 0;
-
 class DP_CTRL_Thread : public base::Singleton<DP_CTRL_Thread> {
 private:
     int g_ctrl_fd;                                          //agent与ardp的socket句柄文件
