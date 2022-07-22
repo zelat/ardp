@@ -28,7 +28,7 @@ static inline bool BITMASK_ANY_TEST(uint8_t *v, int size)
     int i;
     for (i = 0; (i < BITMASK_ARRAY_SIZE(size)); i ++) {
         if (v[i]) return true;
-    }   
+    }
     return false;
 }
 

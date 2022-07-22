@@ -49,10 +49,10 @@ extern bool dpi_dlp_ep_policy_check(dpi_packet_t *p);
 extern bool dpi_waf_ep_policy_check(dpi_packet_t *p);
 
 static uint16_t get_l4_cksum(uint32_t sum, void *l4_hdr, uint16_t l4_len) {
-    register uint16_t *ptr;
-    register int len, i;
+    int16_t *ptr;
+    int len, i;
 
-    ptr = (uint16_t *) l4_hdr;
+    ptr = (int16_t *)l4_hdr;
     len = l4_len >> 1;
     for (i = 0; i < len; i++, ptr++) {
         sum += *ptr;
@@ -68,9 +68,9 @@ static uint16_t get_l4_cksum(uint32_t sum, void *l4_hdr, uint16_t l4_len) {
 }
 
 uint16_t get_l4v6_cksum(struct ip6_hdr *ip6h, uint8_t ip_proto, void *l4_hdr, uint16_t l4_len) {
-    register uint32_t sum = 0;
-    register uint16_t *ptr;
-    register int i;
+    uint32_t sum = 0;
+    uint16_t *ptr;
+    int i;
 
     union {
         struct {
@@ -98,9 +98,9 @@ uint16_t get_l4v6_cksum(struct ip6_hdr *ip6h, uint8_t ip_proto, void *l4_hdr, ui
 }
 
 uint16_t get_l4v4_cksum(struct iphdr *iph, void *l4_hdr, uint16_t l4_len) {
-    register uint32_t sum = 0;
-    register uint16_t *ptr;
-    register int i;
+    uint32_t sum = 0;
+    int16_t *ptr;
+    int i;
 
     if (iph != NULL) {
         union {
@@ -120,7 +120,7 @@ uint16_t get_l4v4_cksum(struct iphdr *iph, void *l4_hdr, uint16_t l4_len) {
         u.ph.proto = iph->protocol;
         u.ph.len = htons(l4_len);
 
-        ptr = &u.ph16[0];
+        ptr = (int16_t *)(&u.ph16[0]);
         for (i = 0; i < 6; i++, ptr++) {
             sum += *ptr;
         }
@@ -130,9 +130,9 @@ uint16_t get_l4v4_cksum(struct iphdr *iph, void *l4_hdr, uint16_t l4_len) {
 }
 
 uint16_t get_ip_cksum(struct iphdr *iph) {
-    register uint16_t *ptr = (uint16_t *) iph;
-    register int len = get_iph_len(iph) >> 1;
-    register uint32_t sum = 0;
+    uint16_t *ptr = (uint16_t *) iph;
+    int len = get_iph_len(iph) >> 1;
+    uint32_t sum = 0;
 
     while (len--) {
         sum += *ptr++;

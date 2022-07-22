@@ -13,6 +13,7 @@ extern "C" {
 #include "base/timer_wheel.h"
 #include "base/bits.h"
 #include "base/asm.h"
+#include "base/debug.h"
 #ifdef __cplusplus
 }
 #endif

@@ -4,7 +4,8 @@ set (URCU_ROOT        ${CMAKE_BINARY_DIR}/third_party/urcu)
 set (URCU_LIB_DIR     ${URCU_ROOT}/lib)
 set (URCU_INCLUDE_DIR ${URCU_ROOT}/include)
 
-set (URCU_CONFIGURE    cd ${URCU_ROOT}/src/userspace-rcu-0.13.1 && aclocal && libtoolize --force && autoconf && autoheader && automake && ./bootstrap && ./configure --prefix=${URCU_ROOT})
+set (URCU_CONFIGURE    cd ${URCU_ROOT}/src/userspace-rcu-0.13.1 && libtoolize  && aclocal && autoheader
+        && autoreconf -i && automake && autoconf && ./bootstrap && ./configure --prefix=${URCU_ROOT})
 set (URCU_MAKE         cd ${URCU_ROOT}/src/userspace-rcu-0.13.1 && make)
 set (URCU_INSTALL      cd ${URCU_ROOT}/src/userspace-rcu-0.13.1 && make install)
 

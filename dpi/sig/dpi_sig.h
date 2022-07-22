@@ -1,7 +1,14 @@
 #ifndef __DPI_SIG_H__
 #define __DPI_SIG_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "base/bits.h"
+#include "base/debug.h"
+#ifdef __cplusplus
+}
+#endif
 #include "urcu/list.h"
 #include "dpi/sig/dpi_sig_share.h"
 #include "dpi/sig/dpi_hyperscan_common.h"
