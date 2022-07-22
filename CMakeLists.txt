@@ -17,7 +17,7 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -std=c++11 -Werror -Wno-unused-result 
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules;${CMAKE_MODULE_PATH}")
 
-include(cmake/Modules/libnetfilter_queue.cmake)
+#include(cmake/Modules/libnetfilter_queue.cmake)
 include(cmake/Modules/pcap-1.9.0.cmake)
 include(cmake/Modules/jansson-2.14.cmake)
 #include(cmake/Modules/userspace-rcu-0.13.1.cmake)
@@ -32,13 +32,19 @@ include_directories(
 
 find_package (Threads REQUIRED)
 find_package (URCU REQUIRED)
+find_package (NFQ REQUIRED)
 if(URCU_FOUND)
     message("liburcu found")
-#    target_include_directories(${MODULE_MAIN} PRIVATE ${URCU_INCLUDE_DIR})
-#    target_link_libraries(${MODULE_MAIN} ${URCU_LIBRARY})
 else()
     message("required liburcu not found")
 endif()
+
+if(NFQ_FOUND)
+    message("libnetfilter_queue found")
+else()
+    message("libnetfilter_queue not found")
+endif()
+
 
 add_library(base "")
 target_sources(base
@@ -68,8 +74,12 @@ target_sources(dpi
         "${CMAKE_SOURCE_DIR}/dpi/dpi_debug.cc"
         "${CMAKE_SOURCE_DIR}/dpi/sig/dpi_hs_search.cc"
         "${CMAKE_SOURCE_DIR}/dpi/sig/dpi_sig.cc"
+        "${CMAKE_SOURCE_DIR}/dpi/sig/dpi_hyperscan_common.cc"
+        "${CMAKE_SOURCE_DIR}/dpi/sig/dpi_search.cc"
+        "${CMAKE_SOURCE_DIR}/dpi/sig/dpi_sigopt_basic.cc"
+        "${CMAKE_SOURCE_DIR}/dpi/sig/dpi_sigopt_pcre.cc"
         )
-target_link_libraries(dpi hs pcap jansson netfilter_queue)
+target_link_libraries(dpi hs pcap jansson ${NFQ_LIBRARY})
 target_link_libraries(dpi base)
 
 

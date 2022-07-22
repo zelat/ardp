@@ -3,13 +3,24 @@
 //
 
 #include <cstdint>
-#include "apis.h"
 #include "dpi_module.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "base/rcu_map.h"
 #include "base/debug.h"
+#ifdef __cplusplus
+}
+#endif
+#include "apis.h"
 #include "dpi_session.h"
 #include "dpi_debug.h"
 
+bool cmp_mac_prefix(void *m1, void *prefix)
+{
+    if (!m1 || !prefix) return false;
+    return *(uint32_t *)m1 == *(uint32_t *)prefix;
+}
 
 // return true if packet is ingress to "lo" i/f
 static bool proxymesh_packet_direction(io_ctx_t *ctx, dpi_packet_t *p) {

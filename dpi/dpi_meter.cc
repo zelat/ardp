@@ -29,19 +29,19 @@ void log_session_detail(DPMsgThreatLog *log, dpi_session_t *sess);
 
 static meter_info_t meter_info[] = {
         meter_info[DPI_METER_SYN_FLOOD] = {
-                "syn_flood", METER_ID_SYN_FLOOD, DPI_THRT_TCP_FLOOD, true, false, true, false,
+                (char *)"syn_flood", METER_ID_SYN_FLOOD, DPI_THRT_TCP_FLOOD, true, false, true, false,
                 3, 30, 1, 200, 200
         },
         meter_info[DPI_METER_ICMP_FLOOD] = {
-                "icmp_flood", METER_ID_ICMP_FLOOD, DPI_THRT_ICMP_FLOOD, true, false, true, false,
+                (char *)"icmp_flood", METER_ID_ICMP_FLOOD, DPI_THRT_ICMP_FLOOD, true, false, true, false,
                 3, 30, 1, 100, 100
         },
         meter_info[DPI_METER_IP_SRC_SESSION] = {
-                "ip_src_session", METER_ID_IP_SRC_SESSION, DPI_THRT_IP_SRC_SESSION, false, false, true, true,
+                (char *)"ip_src_session", METER_ID_IP_SRC_SESSION, DPI_THRT_IP_SRC_SESSION, false, false, true, true,
                 3, 30, 1, 2000, 2000
         },
         meter_info[DPI_METER_TCP_NODATA] = {
-                "tcp_nodata", METER_ID_TCP_NODATA, DPI_THRT_TCP_NODATA, true, false, true, false,
+                (char *)"tcp_nodata", METER_ID_TCP_NODATA, DPI_THRT_TCP_NODATA, true, false, true, false,
                 10, 0, 10, 10, 10
         },
 };

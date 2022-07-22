@@ -15,7 +15,7 @@ extern "C" {
 }
 #endif
 
-#include "dpi/sig/dpi_hs_search.h"
+#include "dpi/sig/test_dpi_hs_search.h"
 #include "dpthreads/dp_ctrl_thread.h"
 
 __thread int THREAD_ID;           //线程局部存储
@@ -53,8 +53,8 @@ int main(int argc, char **argv){
         }
     }
 
-//    dpi_hs_search dpiHsSearch();
-    dpthreads::DP_CTRL_Thread dpCtrlThread;
+//    test_dpi_hs_search dpiHsSearch();
+    DP_CTRL_Thread dpCtrlThread;
     dpCtrlThread.Init();
     dpCtrlThread.dp_ctrl_loop();
 

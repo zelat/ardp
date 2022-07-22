@@ -11,13 +11,19 @@
 #include <netinet/ip_icmp.h>
 #include <netinet/icmp6.h>
 
-#include "apis.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "base/helper.h"
 #include "base/bits.h"
+#include "base/debug.h"
+#ifdef __cplusplus
+}
+#endif
+#include "apis.h"
 #include "dpi_module.h"
 #include "dpi_packet.h"
 #include "dpi_session.h"
-#include "base/debug.h"
 #include "dpi_debug.h"
 #include "dpi_log.h"
 

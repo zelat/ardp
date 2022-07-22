@@ -58,7 +58,7 @@ int DP_Ring::dp_tx(dp_context_t *ctx, uint8_t *pkt, int len, bool large_frame) {
 
         dp_tx_flush(ctx, DEFAULT_PENDING_LIMIT);
     } else {
-        printf("TX queue full, status=0x%x Drop!\n", tp->tp_status);
+        printf("TX queue full, status=0x%lx Drop!\n", tp->tp_status);
 
         ctx->stats.tx_drops++;
         ret = -1;

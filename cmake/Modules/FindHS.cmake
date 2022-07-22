@@ -1,14 +1,8 @@
-find_package(PkgConfig)
-pkg_check_modules(PC_HYPERSCAN libhs)
+find_path(HS_INCLUDE_DIR
+        NAMES hs_compile.h
+        PATHS /usr/include/ /usr/local/include ${CMAKE_SOURCE_DIR}/ModuleMode)
+find_library(HS_LIBRARY NAMES urcu PATHS /usr/local/lib /usr/lib/urcu /usr/local/lib/urcu ${CMAKE_SOURCE_DIR}/ModuleMode)
 
-# Use HS_INCLUDE_DIR and HS_LIBRARY_DIR from configure_cmake.sh as primary hints
-# and then package config information after that.
-find_path(HS_INCLUDE_DIRS hs_compile.h
-        HINTS ${HS_INCLUDE_DIR} ${PC_HYPERSCAN_INCLUDEDIR} ${PC_HYPERSCAN_INCLUDE_DIRS})
-find_library(HS_LIBRARIES NAMES hs
-        HINTS ${HS_LIBRARIES_DIR} ${PC_HYPERSCAN_LIBDIR} ${PC_HYPERSCAN_LIBRARY_DIRS})
-
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(HS REQUIRED_VARS HS_LIBRARIES HS_INCLUDE_DIRS VERSION_VAR PC_HYPERSCAN_VERSION)
-
-mark_as_advanced(HS_INCLUDE_DIRS HS_LIBRARIES)
+if (HS_INCLUDE_DIR AND HS_LIBRARY)
+    set(HS_FOUND TRUE)
+endif (HS_INCLUDE_DIR AND HS_LIBRARY)
