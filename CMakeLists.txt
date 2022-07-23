@@ -60,7 +60,8 @@ target_sources(base
         "${CMAKE_SOURCE_DIR}/base/debug.c"
         "${CMAKE_SOURCE_DIR}/base/event_handler.cc"
         )
-target_link_libraries(base ${URCU_LIBRARY})
+#target_link_libraries(base ${URCU_LIBRARY})
+target_link_libraries(base urcu urcu-cds)
 
 add_library(dpi "")
 target_sources(dpi
@@ -84,6 +85,7 @@ target_sources(dpi
         "${CMAKE_SOURCE_DIR}/dpi/parsers/dpi_sqlinjection.cc"
         )
 target_link_libraries(dpi hs pcap jansson ${NFQ_LIBRARY})
+target_link_libraries(dpi pcre2-8)
 target_link_libraries(dpi base)
 
 
@@ -99,8 +101,8 @@ target_sources(dpthreads
         "${CMAKE_SOURCE_DIR}/dpthreads/dp_ring.cc"
         "${CMAKE_SOURCE_DIR}/dpthreads/dp_event_cb.cc"
         )
-target_link_libraries(dpthreads base dpi)
+target_link_libraries(dpthreads dpi)
 
 
 add_executable(ardp main.cc)
-target_link_libraries(ardp dpi base dpthreads)
+target_link_libraries(ardp dpi dpthreads)

@@ -26,21 +26,13 @@ extern "C" {
             dpi_threat_trigger(DPI_THRT_BAD_PACKET, p, format, ##args)
 
 extern dpi_session_t *dpi_session_lookup(dpi_packet_t *p);
-
 extern void dpi_tcp_tracker(dpi_packet_t *p);
-
 extern void dpi_udp_tracker(dpi_packet_t *p);
-
 extern void dpi_icmp_tracker(dpi_packet_t *p);
-
 extern void dpi_ip_tracker(dpi_packet_t *p);
-
 extern bool dpi_process_detector(dpi_packet_t *p);
-
-extern bool cmp_mac_prefix(void *m1, const char *prefix);
-
+extern bool cmp_mac_prefix(void *m1, void *prefix);
 extern bool dpi_dlp_ep_policy_check(dpi_packet_t *p);
-
 extern bool dpi_waf_ep_policy_check(dpi_packet_t *p);
 
 static uint16_t get_l4_cksum(uint32_t sum, void *l4_hdr, uint16_t l4_len) {
@@ -1037,7 +1029,7 @@ static void dpi_pkt_log(dpi_packet_t *p) {
                 return;
             }
             // proxymesh related session
-            if (cmp_mac_prefix(p->ep_mac, PROXYMESH_MAC_PREFIX) &&
+            if (cmp_mac_prefix(p->ep_mac, (char *)PROXYMESH_MAC_PREFIX) &&
                 /* 1. send connection report only when  return packet from server is seen */
                 ((!FLAGS_TEST(s->flags, DPI_SESS_FLAG_INGRESS) && s->server.pkts == 0) //||
                         /* 2. not to send connection report for session whose client and server ip are both 127.0.0.1/::1 */
@@ -1122,7 +1114,7 @@ int dpi_inspect_ethernet(dpi_packet_t *p) {
         } else {
             FLAGS_UNSET(sess->flags, DPI_SESS_FLAG_TAP);
         }
-        if (cmp_mac_prefix(p->ep_mac, PROXYMESH_MAC_PREFIX)) {
+        if (cmp_mac_prefix(p->ep_mac, (char *)PROXYMESH_MAC_PREFIX)) {
             FLAGS_SET(sess->flags, DPI_SESS_FLAG_PROXYMESH);
         } else {
             FLAGS_UNSET(sess->flags, DPI_SESS_FLAG_PROXYMESH);

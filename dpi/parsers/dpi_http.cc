@@ -1,8 +1,8 @@
 #include <string.h>
 #include <ctype.h>
-#include "dpi/dpi_module.h"
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
+#include "dpi/dpi_module.h"
 
 #define HTTP_HEADER_COMPLETE_TIMEOUT 3
 #define HTTP_BODY_FIRST_TIMEOUT      30
@@ -890,7 +890,7 @@ static void http_parser(dpi_packet_t *p)
     uint8_t *ptr, *end;
     uint32_t len;
 
-    if (unlikely((data = (http_data_t *)dpi_get_parser_data(p)) == NULL)) {
+    if (unlikely((data = (http_data_t *)dpi_get_parser_data(p)) == nullptr)) {
         if (!dpi_is_client_pkt(p)) {
             DEBUG_LOG(DBG_PARSER, p, "Not HTTP: First packet from server\n");
             dpi_fire_parser(p);

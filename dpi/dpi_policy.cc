@@ -26,8 +26,7 @@ extern "C" {
 #include "dpi_module.h"
 
 dpi_fqdn_hdl_t *g_fqdn_hdl = NULL;
-
-extern bool cmp_mac_prefix(void *m1, const char *prefix);
+extern bool cmp_mac_prefix(void *m1, void *prefix);
 
 static int
 policy_match_ipv4_fqdn_code(dpi_fqdn_hdl_t *fqdn_hdl, uint32_t ip, dpi_policy_hdl_t *hdl, dpi_rule_key_t *key,
@@ -980,7 +979,7 @@ int dpi_policy_reeval(dpi_packet_t *p, bool to_server) {
         uint32_t dip;
         void *pbuf;
         bool dstlo = false;
-        bool isproxymesh = cmp_mac_prefix(p->ep_mac, PROXYMESH_MAC_PREFIX);
+        bool isproxymesh = cmp_mac_prefix(p->ep_mac, (char *)PROXYMESH_MAC_PREFIX);
         if (isproxymesh) {
             if (p->ep && !mac_zero(p->ep->pmac.ether_addr_octet)) {
                 pbuf = rcu_map_lookup(&g_ep_map, &p->ep->pmac);

@@ -19,7 +19,7 @@ extern "C" {
 #include "dpi_log.h"
 
 
-extern bool cmp_mac_prefix(void *m1, const char *prefix);
+extern bool cmp_mac_prefix(void *m1, void *prefix);
 
 #define LOG_CACHE_TIMEOUT 5
 
@@ -529,7 +529,7 @@ static void dpi_dlp_trigger_sig_dir(dpi_packet_t *p, dpi_match_t *m, bool flip, 
     DPMsgThreatLog log;
     uint32_t count = 1;
     uint8_t action;
-    bool isproxymesh = cmp_mac_prefix(p->ep_mac, PROXYMESH_MAC_PREFIX);
+    bool isproxymesh = cmp_mac_prefix(p->ep_mac, (char *)PROXYMESH_MAC_PREFIX);
 
     memset(&tprop, 0, sizeof(tprop));
 
