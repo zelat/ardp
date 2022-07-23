@@ -1,8 +1,6 @@
 #include <string.h>
 #include <ctype.h>
-
 #include "dpi/dpi_module.h"
-
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
 

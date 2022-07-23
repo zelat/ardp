@@ -25,7 +25,6 @@ extern "C"
 #endif
 #include "libnetfilter_queue/libnetfilter_queue.h"
 #include "dp_ring.h"
-#include "dpi/dpi_entry.h"
 
 
 void DP_Ring::dp_tx_flush(dp_context_t *ctx, int limit) {

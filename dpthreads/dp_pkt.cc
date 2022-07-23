@@ -4,7 +4,6 @@
 
 #include <base/config/config.h>
 #include <unistd.h>
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -14,10 +13,9 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-
+#include "urcu/hlist.h"
 #include "dp_ctrl_thread.h"
 #include "dp_types.h"
-#include "urcu/hlist.h"
 #include "dp_ring.h"
 #include "apis.h"
 #include "base.h"
