@@ -17,6 +17,7 @@ extern "C"
 #include "dpi/dpi_debug.h"
 #include "dpi/dpi_log.h"
 #include "dpi/dpi_policy.h"
+#include "dpi/dpi_parser.h"
 #include "apis.h"
 
 extern rcu_map_t g_ep_map;
@@ -33,7 +34,6 @@ extern io_callback_t *g_io_callback;
 extern io_config_t *g_io_config;
 
 // Thread data
-
 typedef struct dpi_thread_data_ {
     dpi_packet_t packet;
     dpi_snap_t snap;
@@ -61,7 +61,6 @@ typedef struct dpi_thread_data_ {
     uint32_t hs_detect_id;
     uint8_t xff_enabled;
 } dpi_thread_data_t;
-
 extern dpi_thread_data_t g_dpi_thread_data[];
 
 #define th_packet   (g_dpi_thread_data[THREAD_ID].packet)

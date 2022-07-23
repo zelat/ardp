@@ -158,32 +158,6 @@ extern struct ether_addr *g_mac_addr_to_del;
 
 void dpi_session_delete(dpi_session_t *s, int reason);
 
-void dpi_proto_parser(dpi_packet_t *p);
-
-void dpi_midstream_proto_praser(dpi_packet_t *p);
-
-void dpi_recruit_parser(dpi_packet_t *p);
-
-void dpi_midstream_recruit_parser(dpi_packet_t *p);
-
-void *dpi_get_parser_data(dpi_packet_t *p);
-
-void dpi_put_parser_data(dpi_packet_t *p, void *data);
-
-void dpi_hire_parser(dpi_packet_t *p);
-
-void dpi_fire_parser(dpi_packet_t *p);
-
-void dpi_ignore_parser(dpi_packet_t *p);
-
-void dpi_set_asm_seq(dpi_packet_t *p, uint32_t seq);
-
-bool dpi_is_parser_final(dpi_packet_t *p);
-
-void dpi_finalize_parser(dpi_packet_t *p);
-
-void dpi_purge_parser_data(dpi_session_t *s);
-
 void dpi_asm_remove(clip_t *clip);
 
 int dpi_cache_packet(dpi_packet_t *p, dpi_wing_t *w, bool lookup);
