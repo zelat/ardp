@@ -190,9 +190,8 @@ int DP_CTRL_Thread::dp_ctrl_handler() {
 
 //dp与agent通信主函数
 void DP_CTRL_Thread::dp_ctrl_loop() {
-    int ret = 0;
+    int ret, round = 0;
     fd_set read_fds;
-    int round = 0;
     struct timeval timeout;
     struct timespec last, now;
 
@@ -204,7 +203,12 @@ void DP_CTRL_Thread::dp_ctrl_loop() {
     //创建通信句柄文件
     g_ctrl_fd = socketDpServer.Init();
     g_ctrl_notify_fd = socketCtrlNotify.Init();
+
     /* 互斥锁初始化. */
+    pthread_mutex_init(&g_ctrl_req_lock, NULL);
+    pthread_cond_init(&g_ctrl_req_cond, NULL);
+    pthread_mutex_init(&g_dlp_ctrl_req_lock, NULL);
+    pthread_cond_init(&g_dlp_ctrl_req_cond, NULL);
 
     clock_gettime(CLOCK_MONOTONIC, &last);
     while (g_running) {
@@ -215,6 +219,7 @@ void DP_CTRL_Thread::dp_ctrl_loop() {
         FD_ZERO(&read_fds);
         FD_SET(g_ctrl_fd, &read_fds);
         ret = select(g_ctrl_fd + 1, &read_fds, nullptr, nullptr, &timeout);
+
         if (ret > 0 && FD_ISSET(g_ctrl_fd, &read_fds)) {
             cout << "接收到agent发送的消息" << endl;
             dp_ctrl_handler();
@@ -233,7 +238,7 @@ void DP_CTRL_Thread::dp_ctrl_loop() {
     close(g_ctrl_notify_fd);
     close(g_ctrl_fd);
     unlink(DP_SERVER_SOCK);
-
+    rcu_map_destroy(&g_ep_map);
     rcu_unregister_thread();
 }
 
@@ -354,6 +359,31 @@ int DP_CTRL_Thread::dp_ctrl_add_srvc_port(json_t *msg) {
     printf("iface=%s, jumboframe=%d\n", iface, jumboframe);
 
     return dp_data_add_port(iface, jumboframe, 0);
+}
+
+void *DP_CTRL_Thread::dp_timer_thr(void *args) {
+    snprintf(THREAD_NAME, MAX_THREAD_NAME_LEN, "tmr");
+    g_start_time = time(NULL);
+    while (g_running) {
+        sleep(1);
+        g_seconds ++;
+        if ((g_seconds & 0x1f) == 0) {
+            time_t time_elapsed = time(NULL) - g_start_time;
+            if (time_elapsed > g_seconds) {
+                DEBUG_TIMER("Advance timer for %us\n", time_elapsed - g_seconds);
+                g_seconds = time_elapsed;
+            }
+        }
+    }
+    return NULL;
+}
+
+void *DP_CTRL_Thread::dp_bld_dlp_thr(void *args) {
+    return nullptr;
+}
+
+void *DP_CTRL_Thread::dp_data_thr(void *args) {
+    return nullptr;
 }
 
 

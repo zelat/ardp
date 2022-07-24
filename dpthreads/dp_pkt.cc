@@ -15,6 +15,7 @@ extern "C"
 #endif
 #include "urcu/hlist.h"
 #include "dp_ctrl_thread.h"
+#include "dp_pkt.h"
 #include "dp_types.h"
 #include "dp_ring.h"
 #include "apis.h"
@@ -36,23 +37,11 @@ extern dp_mnt_shm_t *g_shm;
 #define RELEASED_CTX_TIMEOUT 5      // 10 second
 #define RELEASED_CTX_PRUNE_FREQ 5   // 10 second
 #define DP_STATS_FREQ 60            // 1 minute
-
 #define MAX_EPOLL_EVENTS 128
-
-dp_thread_data_t g_dp_thread_data[MAX_DP_THREADS];
-
-#define th_epoll_fd(thr_id)      (g_dp_thread_data[thr_id].epoll_fd)
-#define th_ctx_list(thr_id)      (g_dp_thread_data[thr_id].ctx_list)
-#define th_ctx_free_list(thr_id) (g_dp_thread_data[thr_id].ctx_free_list)
-#define th_ctx_inline(thr_id)    (g_dp_thread_data[thr_id].ctx_inline)
-#define th_ctrl_dp_lock(thr_id)  (g_dp_thread_data[thr_id].ctrl_dp_lock)
-#define th_ctrl_req_evfd(thr_id) (g_dp_thread_data[thr_id].ctrl_req_evfd)
-#define th_ctrl_req(thr_id)      (g_dp_thread_data[thr_id].ctrl_req)
 
 int bld_dlp_epoll_fd;
 int bld_dlp_ctrl_req_evfd;
 uint32_t bld_dlp_ctrl_req;
-
 
 int dp_open_socket(dp_context_t *ctx, const char *iface, bool tap, bool tc, uint blocks, uint batch);
 void dp_close_socket(dp_context_t *ctx);
@@ -60,9 +49,7 @@ int dp_rx(dp_context_t *ctx, uint32_t tick);
 void dp_get_stats(dp_context_t *ctx);
 int dp_open_nfq_handle(dp_context_t *ctx, bool jumboframe, uint blocks, uint batch);
 
-//    int dp_open_socket(dp_context_t *ctx, const char *iface, bool tap, bool tc, uint blocks, uint batch);
 DP_Ring dpRing;
-
 static dp_context_t *
 dp_alloc_context(const char *iface, int thr_id, bool tap, bool jumboframe, uint blocks, uint batch) {
     int fd;
@@ -115,21 +102,24 @@ static int dp_ctrl_wait_dlp_threads()
     return rc;
 }
 
-
 int dp_data_add_port(const char *iface, bool jumboframe, int thr_id) {
     int ret = 0;
     dp_context_t *ctx;
 
+    printf("thr_id = %d", thr_id);
     thr_id = thr_id % MAX_DP_THREADS;
-    if (th_epoll_fd(thr_id) == 0) {
+    if (g_dp_thread_data[thr_id].epoll_fd == 0) {
         // TODO: May need to wait a while for dp thread ready
         printf("epoll is not initiated, iface=%s thr_id=%d\n", iface, thr_id);
         return -1;
     }
 
-    pthread_mutex_lock(&th_ctrl_dp_lock(thr_id));
+    //该线程已被锁定
+    pthread_mutex_lock(&g_dp_thread_data[thr_id].ctrl_dp_lock);
+
     do {
-        if (th_ctx_inline(thr_id) != nullptr) {
+        printf("testing===================");
+        if (g_dp_thread_data[thr_id].ctx_inline != nullptr) {
             printf("iface already exists, iface=%s\n", iface);
             break;
         }
@@ -139,15 +129,15 @@ int dp_data_add_port(const char *iface, bool jumboframe, int thr_id) {
             break;
         }
         ctx->peer_ctx = ctx;
-        th_ctx_inline(thr_id) = (dp_context_ *) ctx;
+        g_dp_thread_data[thr_id].ctx_inline = ctx;
 
         strlcpy(ctx->name, iface, sizeof(ctx->name));
-        cds_hlist_add_head(&ctx->link, &th_ctx_list(thr_id));
+        cds_hlist_add_head(&ctx->link, &g_dp_thread_data[thr_id].ctx_list);
 
         printf("added iface=%s fd=%d\n", iface, ctx->fd);
     } while (false);
 
-    pthread_mutex_unlock(&th_ctrl_dp_lock(thr_id));
+    pthread_mutex_unlock(&g_dp_thread_data[thr_id].ctrl_dp_lock);
     return ret;
 }
 

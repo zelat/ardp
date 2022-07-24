@@ -45,18 +45,6 @@ static dpi_parser_t **get_parser_list(int ip_proto)
     }
 }
 
-// Called by protocol parser
-void *dpi_get_parser_data(dpi_packet_t *p)
-{
-    dpi_session_t *s = p->session;
-    return s->parser_data[p->cur_parser->type];
-}
-
-void dpi_put_parser_data(dpi_packet_t *p, void *data)
-{
-    dpi_session_t *s = p->session;
-    s->parser_data[p->cur_parser->type] = data;
-}
 
 // Called when parser loses interest of the session
 static void dpi_delete_parser_data(dpi_session_t *s, dpi_parser_t *cp)
@@ -78,45 +66,6 @@ void dpi_purge_parser_data(dpi_session_t *s)
             dpi_delete_parser_data(s, list[t]);
         }
     }
-}
-
-// Called by protocol parser
-void dpi_hire_parser(dpi_packet_t *p)
-{
-    DEBUG_LOG(DBG_PARSER, p, "%s\n", p->cur_parser->name);
-
-    dpi_session_t *s = p->session;
-    BITMASK_SET(s->parser_bits, p->cur_parser->type);
-}
-
-void dpi_fire_parser(dpi_packet_t *p)
-{
-    DEBUG_LOG(DBG_PARSER, p, "%s\n", p->cur_parser->name);
-
-    dpi_session_t *s = p->session;
-    BITMASK_UNSET(s->parser_bits, p->cur_parser->type);
-}
-
-// It's intentional to keep this as a separate function from 'fire'.
-// 'ignore' is used in the case where the session type is finalized,
-// but the parser won't be at work.
-void dpi_ignore_parser(dpi_packet_t *p)
-{
-    DEBUG_LOG(DBG_PARSER, p, "%s\n", p->cur_parser->name);
-
-    dpi_session_t *s = p->session;
-    BITMASK_UNSET(s->parser_bits, p->cur_parser->type);
-}
-
-void dpi_set_asm_seq(dpi_packet_t *p, uint32_t seq)
-{
-    p->parser_asm_seq = seq;
-} 
-
-bool dpi_is_parser_final(dpi_packet_t *p)
-{
-    dpi_session_t *s = p->session;
-    return !!(s->flags & DPI_SESS_FLAG_FINAL_PARSER);
 }
 
 void dpi_finalize_parser(dpi_packet_t *p)

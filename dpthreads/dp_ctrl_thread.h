@@ -60,24 +60,20 @@ private:
     uint8_t g_notify_msg[DP_MSG_SIZE];
     dpi_fqdn_hdl_t *g_fqdn_hdl;
     rcu_map_t g_ep_map;
-
-    int dp_ctrl_handler();
-
-public:
-    int Init();
-
-    void Exit();
-
-    void dp_ctrl_loop();
-
-private:
     DomainSocketDPServer socketDpServer;
     DomainSocketCTRLNotify socketCtrlNotify;
+public:
+    int Init();
+    void Exit();
+    void dp_ctrl_loop();
+    void *dp_timer_thr(void *args);
+    void *dp_bld_dlp_thr(void *args);
+    void *dp_data_thr(void *args);
+private:
+    int dp_ctrl_handler();
 protected:
     int dp_ctrl_cfg_internal_net(json_t *msg, bool internal);
-
     int dp_ctrl_add_srvc_port(json_t *msg);
-
     int dp_ctrl_keep_alive(json_t *msg);
 };
 
