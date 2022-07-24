@@ -10,6 +10,8 @@
 
 #define MAX_DP_THREADS 4           //最大的DP线程数
 
+#define DP_MNT_SHM_NAME "/dp_mnt.shm"  //linux共享内存文件地址
+
 #define DP_SERVER_SOCK "/tmp/dp_listen.sock"     // dp_ctrl通信
 
 #define CTRL_NOTIFY_SOCK "/tmp/ctrl_listen.sock" // dp_ctrl通信
@@ -20,4 +22,5 @@
 
 #define AGENT_SUCCESS 0
 #define AGENT_FAILED -1
+
 #endif //ARDP_CONFIG_H

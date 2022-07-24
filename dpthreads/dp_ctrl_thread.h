@@ -6,7 +6,6 @@
 #define ARDP_DP_CTRL_THREAD_H
 
 #include <ctime>
-#include <base/utils/singleton.h>
 #include "base.h"
 #include "apis.h"
 #include "base/config/config.h"
@@ -50,11 +49,11 @@ typedef struct conn4_key_ {
     bool ingress;
 } conn4_key_t;
 
-class DP_CTRL_Thread : public base::Singleton<DP_CTRL_Thread> {
+class DP_CTRL_Thread{
 private:
     int g_ctrl_fd;                                          //agent与ardp的socket句柄文件
     int g_ctrl_notify_fd;                                   //ctrl发送变更消息的socket句柄文件
-    int g_running = true;                                   //保持监听状态
+    static int g_running;                                          //保持监听状态
     int g_dp_threads;                                       //agent与DP连接的线程数
     dp_thread_data_t g_dp_thread_data[MAX_DP_THREADS];      //线程池
     uint8_t g_notify_msg[DP_MSG_SIZE];
@@ -66,9 +65,9 @@ public:
     int Init();
     void Exit();
     void dp_ctrl_loop();
-    void *dp_timer_thr(void *args);
-    void *dp_bld_dlp_thr(void *args);
-    void *dp_data_thr(void *args);
+    static void *dp_timer_thr(void *args);
+    static void *dp_bld_dlp_thr(void *args);
+    static void *dp_data_thr(void *args);
 private:
     int dp_ctrl_handler();
 protected:
