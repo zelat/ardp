@@ -182,7 +182,7 @@ static int dp_ctrl_wait_dlp_threads() {
     return rc;
 }
 
-static dp_context_t *dp_add_ctrl_req_event(int thr_id)
+dp_context_t *dp_add_ctrl_req_event(int thr_id)
 {
     int fd;
     dp_context_t *ctx;
