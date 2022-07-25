@@ -12,6 +12,8 @@
 #include "domain_socket_ctrl_dp.h"
 #include "domain_socket_ctrl_notify.h"
 
+#define MAX_EPOLL_EVENTS 128
+
 //定义dp线程结构
 typedef struct dp_thread_data_ {
     int epoll_fd;                      //epoll句柄
@@ -53,9 +55,7 @@ class DP_CTRL_Thread{
 private:
     int g_ctrl_fd;                                          //agent与ardp的socket句柄文件
     int g_ctrl_notify_fd;                                   //ctrl发送变更消息的socket句柄文件
-    static int g_running;                                          //保持监听状态
     int g_dp_threads;                                       //agent与DP连接的线程数
-    dp_thread_data_t g_dp_thread_data[MAX_DP_THREADS];      //线程池
     uint8_t g_notify_msg[DP_MSG_SIZE];
     dpi_fqdn_hdl_t *g_fqdn_hdl;
     rcu_map_t g_ep_map;

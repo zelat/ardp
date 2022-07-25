@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <cerrno>
 #include <fcntl.h>
+#include <sys/eventfd.h>
 #include "urcu.h"
 #include "urcu/rcuhlist.h"
 
@@ -67,18 +68,22 @@ static const char *get_tap_name(char *name, const char *netns, const char *iface
 
 static int enter_netns(const char *netns) {
     int curfd, netfd;
-
+    //打开当前网络命名空间
     if ((curfd = open("/proc/self/ns/net", O_RDONLY)) == -1) {
-        DEBUG_ERROR(DBG_CTRL, "failed to open current network namespace\n");
+//        DEBUG_ERROR(DBG_CTRL, "failed to open current network namespace\n");
+        printf("failed to open current network namespace\n");
         return -1;
     }
+    //打开
     if ((netfd = open(netns, O_RDONLY)) == -1) {
-        DEBUG_ERROR(DBG_CTRL, "failed to open network namespace: netns=%s\n", netns);
+//        DEBUG_ERROR(DBG_CTRL, "failed to open network namespace: netns=%s\n", netns);
+        printf("failed to open network namespace: netns=%s\n", netns);
         close(curfd);
         return -1;
     }
     if (setns(netfd, CLONE_NEWNET) == -1) {
-        DEBUG_ERROR(DBG_CTRL, "failed to enter network namespace: netns=%s error=%s\n", netns, strerror(errno));
+//        DEBUG_ERROR(DBG_CTRL, "failed to enter network namespace: netns=%s error=%s\n", netns, strerror(errno));
+        printf("failed to enter network namespace: netns=%s error=%s\n", netns, strerror(errno));
         close(netfd);
         close(curfd);
         return -1;
@@ -177,6 +182,49 @@ static int dp_ctrl_wait_dlp_threads() {
     return rc;
 }
 
+static dp_context_t *dp_add_ctrl_req_event(int thr_id)
+{
+    int fd;
+    dp_context_t *ctx;
+
+    DEBUG_FUNC_ENTRY(DBG_CTRL);
+
+    ctx = (dp_context_t *)calloc(1, sizeof(*ctx));
+    if (ctx == NULL) {
+        return NULL;
+    }
+
+    fd = eventfd(0, 0);
+    if (fd < 0) {
+        DEBUG_ERROR(DBG_CTRL, "fail to create dp_ctrl_req event fd.\n");
+        free(ctx);
+        return NULL;
+    }
+
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags != -1) {
+        fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+    }
+
+    ctx->thr_id = thr_id;
+    ctx->fd = fd;
+
+    ctx->ee.events = EPOLLIN;
+    ctx->ee.data.ptr = ctx;
+
+    if (epoll_ctl(g_dp_thread_data[thr_id].epoll_fd, EPOLL_CTL_ADD, ctx->fd, &ctx->ee) == -1) {
+        DEBUG_ERROR(DBG_CTRL, "fail to add socket to epoll: %s\n", strerror(errno));
+        close(fd);
+        free(ctx);
+        return NULL;
+    }
+
+    g_dp_thread_data[thr_id].ctrl_req_evfd = fd;
+
+    return ctx;
+}
+
+
 int dp_data_add_port(const char *iface, bool jumboframe, int thr_id) {
     int ret = 0;
     dp_context_t *ctx;
@@ -239,12 +287,13 @@ int dp_dlp_wait_ctrl_req_thr(int req) {
 int dp_data_add_tap(const char *netns, const char *iface, const char *ep_mac, int thr_id) {
     int ret = 0;
     dp_context_t *ctx;
-
     thr_id = thr_id % MAX_DP_THREADS;
 
+    printf("g_dp_thread_data[thr_id].epoll_fd = %d", g_dp_thread_data[thr_id].epoll_fd);
     if (g_dp_thread_data[thr_id].epoll_fd == 0) {
         // TODO: May need to wait a while for dp thread ready
-        DEBUG_ERROR(DBG_CTRL, "epoll is not initiated, netns=%s thr_id=%d\n", netns, thr_id);
+//        DEBUG_ERROR(DBG_CTRL, "epoll is not initiated, netns=%s thr_id=%d\n", netns, thr_id);
+        printf("epoll is not initiated, netns=%s thr_id=%d\n", netns, thr_id);
         return -1;
     }
 

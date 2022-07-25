@@ -43,14 +43,21 @@ char * g_in_iface;       //网络设备名字
 io_config_t g_config;
 rcu_map_t g_ep_map;
 io_callback_t g_callback;
-int DP_CTRL_Thread::g_running = true;
+int g_running;
 
+/* 中断dp的运行 */
+static void dp_signal_exit(int num)
+{
+    g_running = false;
+}
+
+/* 创建共享内存区 */
 static void *get_shm(size_t size)
 {
     int fd;
     void *ptr;
 
-    fd = shm_open(DP_MNT_SHM_NAME, O_RDWR, S_IRWXU | S_IRWXG);
+    fd = shm_open(DP_MNT_SHM_NAME, O_CREAT | O_RDWR, S_IRWXU | S_IRWXG);
     if (fd < 0) {
         return NULL;
     }
@@ -72,9 +79,11 @@ static int net_run(const char *iface){
     pthread_t dp_thr[MAX_DP_THREADS];
     int i, timer_thr_id, bld_dlp_thr_id, thr_id[MAX_DP_THREADS];
 
-//    signal(SIGTERM, dp_signal_exit);
-//    signal(SIGINT, dp_signal_exit);
-//    signal(SIGQUIT, dp_signal_exit);
+    g_running = true;
+    // 发送中断信号
+    signal(SIGTERM, dp_signal_exit);
+    signal(SIGINT, dp_signal_exit);
+    signal(SIGQUIT, dp_signal_exit);
 
     // 计算dp线程数
     if (g_dp_threads == 0) {
@@ -89,7 +98,7 @@ static int net_run(const char *iface){
     dpCtrlThread.Init();
 
     pthread_create(&timer_thr, NULL, &DP_CTRL_Thread::dp_timer_thr, &timer_thr_id);
-    pthread_create(&bld_dlp_thr, NULL, &DP_CTRL_Thread::dp_bld_dlp_thr, &bld_dlp_thr_id);
+//    pthread_create(&bld_dlp_thr, NULL, &DP_CTRL_Thread::dp_bld_dlp_thr, &bld_dlp_thr_id);
 
     for (i = 0; i < g_dp_threads; i ++) {
         thr_id[i] = i;
@@ -139,9 +148,10 @@ int main(int argc, char **argv){
 //    test_dpi_hs_search dpiHsSearch();
     g_shm = (dp_mnt_shm_t *)get_shm(sizeof(dp_mnt_shm_t));
     if (g_shm == NULL) {
-        DEBUG_INIT("Unable to get shared memory.\n");
+        printf("Unable to get shared memory.\n");
         return -1;
     }
+
     int ret = net_run(g_in_iface);
 
     return ret;

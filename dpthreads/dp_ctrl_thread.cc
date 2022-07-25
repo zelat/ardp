@@ -22,6 +22,7 @@ extern "C"
 
 #include "dp_ctrl_thread.h"
 #include "dp_ctrl_handler.h"
+#include "dp_types.h"
 
 using namespace std;
 
@@ -36,7 +37,10 @@ io_internal_subnet4_t *g_policy_addr;
 io_spec_internal_subnet4_t *g_specialip_subnet4;
 uint8_t g_xff_enabled = 0;
 
+extern int g_running;
+extern dp_thread_data_t g_dp_thread_data[MAX_DP_THREADS];
 extern int dp_data_add_port(const char *iface, bool jumboframe, int thr_id);
+extern dp_context_t *dp_add_ctrl_req_event(int thr_id);
 
 static int conn4_match(struct cds_lfht_node *ht_node, const void *key) {
     conn_node_t *cnode = STRUCT_OF(ht_node, conn_node_t, node);
@@ -361,16 +365,20 @@ int DP_CTRL_Thread::dp_ctrl_add_srvc_port(json_t *msg) {
     return dp_data_add_port(iface, jumboframe, 0);
 }
 
+/* 修正时间误差 */
 void *DP_CTRL_Thread::dp_timer_thr(void *args) {
     snprintf(THREAD_NAME, MAX_THREAD_NAME_LEN, "tmr");
     g_start_time = time(NULL);
     while (g_running) {
         sleep(1);
         g_seconds ++;
+        // 每隔30S纪录一次时间
         if ((g_seconds & 0x1f) == 0) {
             time_t time_elapsed = time(NULL) - g_start_time;
+            //修正时间误差
             if (time_elapsed > g_seconds) {
-                DEBUG_TIMER("Advance timer for %us\n", time_elapsed - g_seconds);
+//                DEBUG_TIMER("Advance timer for %us\n", time_elapsed - g_seconds);
+                cout << "Advance timer for " << time_elapsed - g_seconds << endl;
                 g_seconds = time_elapsed;
             }
         }
@@ -383,6 +391,27 @@ void *DP_CTRL_Thread::dp_bld_dlp_thr(void *args) {
 }
 
 void *DP_CTRL_Thread::dp_data_thr(void *args) {
+    struct epoll_event epoll_evs[MAX_EPOLL_EVENTS];
+    uint32_t tmo;
+    int thr_id = *(int *)args;
+    dp_context_t *ctrl_req_ev_ctx;
+
+    thr_id = thr_id % MAX_DP_THREADS;
+
+    THREAD_ID = thr_id;
+    snprintf(THREAD_NAME, MAX_THREAD_NAME_LEN, "dp%u", thr_id);
+
+    // Create epoll, add ctrl_req event
+    if ((g_dp_thread_data[thr_id].epoll_fd = epoll_create(MAX_EPOLL_EVENTS)) < 0) {
+        DEBUG_INIT("failed to create epoll, thr_id=%u\n", thr_id);
+        return NULL;
+    }
+
+    ctrl_req_ev_ctx = dp_add_ctrl_req_event(thr_id);
+    if (ctrl_req_ev_ctx == NULL) {
+        return NULL;
+    }
+
     return nullptr;
 }
 
