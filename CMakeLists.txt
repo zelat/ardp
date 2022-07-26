@@ -59,6 +59,7 @@ target_sources(base
         "${CMAKE_SOURCE_DIR}/base/tree.c"
         "${CMAKE_SOURCE_DIR}/base/debug.c"
         "${CMAKE_SOURCE_DIR}/base/event_handler.cc"
+        "${CMAKE_SOURCE_DIR}/base/logger.cc"
         )
 #target_link_libraries(base ${URCU_LIBRARY})
 target_link_libraries(base urcu urcu-cds)

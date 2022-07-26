@@ -4,6 +4,8 @@
 #ifndef ARDP_CONFIG_H
 #define ARDP_CONFIG_H
 
+#define LOG_FILE "/var/log/agent/dp.log"    //日志地址
+
 #define IFACE_NAME_LEN 32          //网络设备名字长度限制
 
 #define DPI_MAX_PCRE_PATTERNS 16   //PCRE最大匹配个数

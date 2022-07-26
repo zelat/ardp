@@ -30,6 +30,7 @@ extern "C" {
 #include "base/config/config.h"
 #include "dpthreads/dp_pkt.h"
 #include "dpthreads/dp_ctrl_thread.h"
+#include "base/logger.h"
 
 extern int dp_data_add_tap(const char *netns, const char *iface, const char *ep_mac, int thr_id);
 
@@ -44,6 +45,9 @@ io_config_t g_config;
 rcu_map_t g_ep_map;
 io_callback_t g_callback;
 int g_running;
+pthread_mutex_t g_debug_lock;
+struct cds_list_head g_subnet4_list;
+struct cds_list_head g_subnet6_list;
 
 /* 中断dp的运行 */
 static void dp_signal_exit(int num)
@@ -120,8 +124,19 @@ static int net_run(const char *iface){
     return 0;
 }
 
+typedef int (DPLogger::*test)(bool);
+
 int main(int argc, char **argv){
     int arg = 0;
+    //是否传入PCAP文件
+    char *pcap = NULL;
+    //CPU限制
+    struct rlimit core_limits;
+    core_limits.rlim_cur = core_limits.rlim_max = RLIM_INFINITY;
+    setrlimit(RLIMIT_CORE, &core_limits);                // 设置CPU使用限制
+    //清空一个g_config结构类型的变量, 对定义的字符串进行初始化为‘0’
+    memset(&g_config, 0, sizeof(g_config));
+
     while (arg != -1) {
         arg = getopt(argc, argv, "hcd:i:j:n:p:s");
         switch (arg) {
@@ -144,6 +159,19 @@ int main(int argc, char **argv){
                 exit(-2);
         }
     }
+
+    setlinebuf(stdout);
+    pthread_mutex_init(&g_debug_lock, NULL);
+//    rcu_map_init(&g_ep_map, 1, offsetof(io_mac_t, node), dp_ep_match, dp_ep_hash);
+    CDS_INIT_LIST_HEAD(&g_subnet4_list);
+    CDS_INIT_LIST_HEAD(&g_subnet6_list);
+
+    if (pcap != NULL){
+        g_callback.debug = &DPLogger::debug_stdout;
+    } else {
+        g_callback.debug = &DPLogger::debug_stdout;
+    }
+
 
 //    test_dpi_hs_search dpiHsSearch();
     g_shm = (dp_mnt_shm_t *)get_shm(sizeof(dp_mnt_shm_t));
