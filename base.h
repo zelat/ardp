@@ -45,11 +45,16 @@ typedef struct rate_limiter_ {
 } dp_rate_limter_t;
 
 extern int g_stats_slot;
-time_t get_current_time();
-
 
 typedef struct dp_mnt_shm_ {
     uint32_t dp_hb[MAX_DP_THREADS];
     bool dp_active[MAX_DP_THREADS];
 } dp_mnt_shm_t;
+
+inline time_t get_current_time()
+{
+    return (g_start_time + g_seconds);
+}
+
+#define RELEASED_CTX_TIMEOUT 5      // 10 second
 #endif //DPI_TEST_BASE_H

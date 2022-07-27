@@ -19,10 +19,10 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-
+#include "base.h"
 #include "dp_ctrl_thread.h"
-#include "dp_ctrl_handler.h"
 #include "dp_types.h"
+#include "dpi/dpi_entry.h"
 
 using namespace std;
 
@@ -37,6 +37,7 @@ io_internal_subnet4_t *g_policy_addr;
 io_spec_internal_subnet4_t *g_specialip_subnet4;
 uint8_t g_xff_enabled = 0;
 
+extern dp_mnt_shm_t *g_shm;
 extern int g_running;
 extern dp_thread_data_t g_dp_thread_data[MAX_DP_THREADS];
 extern int dp_data_add_port(const char *iface, bool jumboframe, int thr_id);
@@ -365,27 +366,6 @@ int DP_CTRL_Thread::dp_ctrl_add_srvc_port(json_t *msg) {
     return dp_data_add_port(iface, jumboframe, 0);
 }
 
-/* 修正时间误差 */
-void *DP_CTRL_Thread::dp_timer_thr(void *args) {
-    snprintf(THREAD_NAME, MAX_THREAD_NAME_LEN, "tmr");
-    g_start_time = time(NULL);
-    while (g_running) {
-        sleep(1);
-        g_seconds ++;
-        // 每隔30S纪录一次时间
-        if ((g_seconds & 0x1f) == 0) {
-            time_t time_elapsed = time(NULL) - g_start_time;
-            //修正时间误差
-            if (time_elapsed > g_seconds) {
-//                DEBUG_TIMER("Advance timer for %us\n", time_elapsed - g_seconds);
-                cout << "Advance timer for " << time_elapsed - g_seconds << endl;
-                g_seconds = time_elapsed;
-            }
-        }
-    }
-    return NULL;
-}
-
 void *DP_CTRL_Thread::dp_bld_dlp_thr(void *args) {
     return nullptr;
 }
@@ -412,6 +392,17 @@ void *DP_CTRL_Thread::dp_data_thr(void *args) {
         return NULL;
     }
 
+    rcu_register_thread();
+
+    g_shm->dp_active[thr_id] = true;
+    pthread_mutex_init(&g_dp_thread_data[thr_id].ctrl_dp_lock, NULL);
+    CDS_INIT_HLIST_HEAD(&g_dp_thread_data[thr_id].ctx_list);
+    timer_queue_init(&g_dp_thread_data[thr_id].ctx_free_list, RELEASED_CTX_TIMEOUT);
+
+    //初始化每个线程
+    dpi_init(DPI_INIT);
+
+    DEBUG_INIT("dp thread starts\n");
     return nullptr;
 }
 

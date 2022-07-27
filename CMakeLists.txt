@@ -90,7 +90,7 @@ target_link_libraries(dpi pcre2-8)
 target_link_libraries(dpi base)
 
 
-add_library(dpthreads "" base.cc)
+add_library(dpthreads "")
 target_sources(dpthreads
         PRIVATE
         "${CMAKE_SOURCE_DIR}/dpthreads/dp_ctrl_thread.cc"

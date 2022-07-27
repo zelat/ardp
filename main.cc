@@ -37,6 +37,7 @@ extern int dp_data_add_tap(const char *netns, const char *iface, const char *ep_
 __thread int THREAD_ID;           //线程局部存储
 __thread char THREAD_NAME[32];
 
+struct timeval g_now;
 dp_mnt_shm_t *g_shm;
 int g_dp_threads = 0;
 int g_stats_slot = 0;
@@ -101,7 +102,7 @@ static int net_run(const char *iface){
 
     dpCtrlThread.Init();
 
-    pthread_create(&timer_thr, NULL, &DP_CTRL_Thread::dp_timer_thr, &timer_thr_id);
+    pthread_create(&timer_thr, NULL, debug_timer_thr, &timer_thr_id);
 //    pthread_create(&bld_dlp_thr, NULL, &DP_CTRL_Thread::dp_bld_dlp_thr, &bld_dlp_thr_id);
 
     for (i = 0; i < g_dp_threads; i ++) {
@@ -123,8 +124,6 @@ static int net_run(const char *iface){
     }
     return 0;
 }
-
-typedef int (DPLogger::*test)(bool);
 
 int main(int argc, char **argv){
     int arg = 0;
@@ -167,11 +166,10 @@ int main(int argc, char **argv){
     CDS_INIT_LIST_HEAD(&g_subnet6_list);
 
     if (pcap != NULL){
-        g_callback.debug = &DPLogger::debug_stdout;
+        g_callback.debug = debug_stdout;
     } else {
-        g_callback.debug = &DPLogger::debug_stdout;
+        g_callback.debug = debug_stdout;
     }
-
 
 //    test_dpi_hs_search dpiHsSearch();
     g_shm = (dp_mnt_shm_t *)get_shm(sizeof(dp_mnt_shm_t));

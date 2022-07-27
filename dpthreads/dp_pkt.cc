@@ -290,6 +290,7 @@ int dp_data_add_tap(const char *netns, const char *iface, const char *ep_mac, in
     thr_id = thr_id % MAX_DP_THREADS;
 
     printf("g_dp_thread_data[thr_id].epoll_fd = %d", g_dp_thread_data[thr_id].epoll_fd);
+
     if (g_dp_thread_data[thr_id].epoll_fd == 0) {
         // TODO: May need to wait a while for dp thread ready
 //        DEBUG_ERROR(DBG_CTRL, "epoll is not initiated, netns=%s thr_id=%d\n", netns, thr_id);

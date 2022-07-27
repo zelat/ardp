@@ -18,6 +18,7 @@ extern "C"
 #include "dpi/dpi_log.h"
 #include "dpi/dpi_policy.h"
 #include "dpi/dpi_parser.h"
+#include "dpi/dpi_entry.h"
 #include "apis.h"
 
 extern rcu_map_t g_ep_map;

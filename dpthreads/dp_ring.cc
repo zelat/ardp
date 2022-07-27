@@ -10,8 +10,7 @@
 #include <cstdio>
 #include <unistd.h>
 #include <sys/mman.h>
-#include <dpi/dpi_packet.h>
-
+#include "dpi/dpi_module.h"
 #include "dp_types.h"
 #include "apis.h"
 #include "base.h"

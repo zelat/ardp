@@ -65,7 +65,6 @@ public:
     int Init();
     void Exit();
     void dp_ctrl_loop();
-    static void *dp_timer_thr(void *args);
     static void *dp_bld_dlp_thr(void *args);
     static void *dp_data_thr(void *args);
 private:
