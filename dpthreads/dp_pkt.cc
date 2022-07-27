@@ -201,8 +201,10 @@ dp_context_t *dp_add_ctrl_req_event(int thr_id)
         return NULL;
     }
 
+    //fcntl操作文件描述符
     int flags = fcntl(fd, F_GETFL, 0);
     if (flags != -1) {
+        //设置为非阻塞模式
         fcntl(fd, F_SETFL, flags | O_NONBLOCK);
     }
 

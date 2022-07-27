@@ -392,8 +392,8 @@ void *DP_CTRL_Thread::dp_data_thr(void *args) {
     }
 
     rcu_register_thread();
-//
-//    g_shm->dp_active[thr_id] = true;
+
+    g_shm->dp_active[thr_id] = true;
 //    pthread_mutex_init(&g_dp_thread_data[thr_id].ctrl_dp_lock, NULL);
 //    CDS_INIT_HLIST_HEAD(&g_dp_thread_data[thr_id].ctx_list);
 //    timer_queue_init(&g_dp_thread_data[thr_id].ctx_free_list, RELEASED_CTX_TIMEOUT);

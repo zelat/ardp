@@ -35,22 +35,6 @@ extern "C"
 static uint32_t g_seconds;
 static time_t g_start_time;
 
-typedef struct rate_limiter_ {
-    uint16_t dur;             // in second
-    uint16_t dur_cnt_limit;
-    uint32_t start;
-    uint32_t cnt;
-    uint32_t total_drop;
-    uint32_t total_pass;
-} dp_rate_limter_t;
-
-extern int g_stats_slot;
-
-typedef struct dp_mnt_shm_ {
-    uint32_t dp_hb[MAX_DP_THREADS];
-    bool dp_active[MAX_DP_THREADS];
-} dp_mnt_shm_t;
-
 inline time_t get_current_time()
 {
     return (g_start_time + g_seconds);
