@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <stdarg.h>
-#include <string.h>
 #include <strings.h>
 
 #include "apis.h"
@@ -12,10 +11,9 @@ uint32_t g_debug_levels = DBG_DEFAULT;
 
 void debug_log_no_filter(bool print_ts, const char *fmt, ...)
 {
-    printf("==============================================");
     va_list args;
-
     va_start(args, fmt);
+    vprintf(fmt, args);
     g_callback.debug(print_ts, fmt, args);
     va_end(args);
 }

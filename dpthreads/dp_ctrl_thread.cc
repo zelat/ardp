@@ -22,7 +22,6 @@ extern "C"
 #include "base.h"
 #include "dp_ctrl_thread.h"
 #include "dp_types.h"
-#include "dpi/dpi_entry.h"
 
 using namespace std;
 
@@ -386,13 +385,13 @@ void *DP_CTRL_Thread::dp_data_thr(void *args) {
         DEBUG_INIT("failed to create epoll, thr_id=%u\n", thr_id);
         return NULL;
     }
-    DEBUG_INIT("success to  create epoll, thr_id=%u\n", thr_id);
-//    ctrl_req_ev_ctx = dp_add_ctrl_req_event(thr_id);
-//    if (ctrl_req_ev_ctx == NULL) {
-//        return NULL;
-//    }
-//
-//    rcu_register_thread();
+    DEBUG_INIT("success to create epoll, thr_id=%u\n", thr_id);
+    ctrl_req_ev_ctx = dp_add_ctrl_req_event(thr_id);
+    if (ctrl_req_ev_ctx == NULL) {
+        return NULL;
+    }
+
+    rcu_register_thread();
 //
 //    g_shm->dp_active[thr_id] = true;
 //    pthread_mutex_init(&g_dp_thread_data[thr_id].ctrl_dp_lock, NULL);

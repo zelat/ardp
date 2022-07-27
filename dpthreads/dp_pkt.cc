@@ -193,7 +193,7 @@ dp_context_t *dp_add_ctrl_req_event(int thr_id)
     if (ctx == NULL) {
         return NULL;
     }
-
+    //创建一个eventfd对象，返回一个文件描述符
     fd = eventfd(0, 0);
     if (fd < 0) {
         DEBUG_ERROR(DBG_CTRL, "fail to create dp_ctrl_req event fd.\n");
