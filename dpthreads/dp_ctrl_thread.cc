@@ -386,23 +386,23 @@ void *DP_CTRL_Thread::dp_data_thr(void *args) {
         DEBUG_INIT("failed to create epoll, thr_id=%u\n", thr_id);
         return NULL;
     }
-
-    ctrl_req_ev_ctx = dp_add_ctrl_req_event(thr_id);
-    if (ctrl_req_ev_ctx == NULL) {
-        return NULL;
-    }
-
-    rcu_register_thread();
-
-    g_shm->dp_active[thr_id] = true;
-    pthread_mutex_init(&g_dp_thread_data[thr_id].ctrl_dp_lock, NULL);
-    CDS_INIT_HLIST_HEAD(&g_dp_thread_data[thr_id].ctx_list);
-    timer_queue_init(&g_dp_thread_data[thr_id].ctx_free_list, RELEASED_CTX_TIMEOUT);
-
-    //初始化每个线程
-    dpi_init(DPI_INIT);
-
-    DEBUG_INIT("dp thread starts\n");
+    DEBUG_INIT("success to  create epoll, thr_id=%u\n", thr_id);
+//    ctrl_req_ev_ctx = dp_add_ctrl_req_event(thr_id);
+//    if (ctrl_req_ev_ctx == NULL) {
+//        return NULL;
+//    }
+//
+//    rcu_register_thread();
+//
+//    g_shm->dp_active[thr_id] = true;
+//    pthread_mutex_init(&g_dp_thread_data[thr_id].ctrl_dp_lock, NULL);
+//    CDS_INIT_HLIST_HEAD(&g_dp_thread_data[thr_id].ctx_list);
+//    timer_queue_init(&g_dp_thread_data[thr_id].ctx_free_list, RELEASED_CTX_TIMEOUT);
+//
+//    //初始化每个线程
+//    dpi_init(DPI_INIT);
+//
+//    DEBUG_INIT("dp thread starts\n");
     return nullptr;
 }
 

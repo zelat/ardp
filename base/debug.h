@@ -36,22 +36,22 @@
 #define DBG_ENUM_POLICY  10
 #define DBG_ENUM_DETECT  11
 
-#define DBG_INIT    (1 << DBG_ENUM_INIT)
-#define DBG_ERROR   (1 << DBG_ENUM_ERROR)
-#define DBG_CTRL    (1 << DBG_ENUM_CTRL)
-#define DBG_PACKET  (1 << DBG_ENUM_PACKET)
-#define DBG_SESSION (1 << DBG_ENUM_SESSION)
-#define DBG_TIMER   (1 << DBG_ENUM_TIMER)
-#define DBG_TCP     (1 << DBG_ENUM_TCP)
-#define DBG_PARSER  (1 << DBG_ENUM_PARSER)
-#define DBG_LOG     (1 << DBG_ENUM_LOG)
-#define DBG_DDOS    (1 << DBG_ENUM_DDOS)
-#define DBG_POLICY  (1 << DBG_ENUM_POLICY)
-#define DBG_DETECT  (1 << DBG_ENUM_DETECT)
+#define DBG_INIT    (1 << DBG_ENUM_INIT)          //0x0000 0000 0001
+#define DBG_ERROR   (1 << DBG_ENUM_ERROR)         //0x0000 0000 0010
+#define DBG_CTRL    (1 << DBG_ENUM_CTRL)          //0x0000 0000 0100
+#define DBG_PACKET  (1 << DBG_ENUM_PACKET)        //0x0000 0000 1000
+#define DBG_SESSION (1 << DBG_ENUM_SESSION)       //0x0000 0001 0000
+#define DBG_TIMER   (1 << DBG_ENUM_TIMER)         //0x0000 0010 0000
+#define DBG_TCP     (1 << DBG_ENUM_TCP)           //0x0000 0100 0000
+#define DBG_PARSER  (1 << DBG_ENUM_PARSER)        //0x0000 1000 0000
+#define DBG_LOG     (1 << DBG_ENUM_LOG)           //0x0001 0000 0000
+#define DBG_DDOS    (1 << DBG_ENUM_DDOS)          //0x0010 0000 0000
+#define DBG_POLICY  (1 << DBG_ENUM_POLICY)        //0x0100 0000 0000
+#define DBG_DETECT  (1 << DBG_ENUM_DETECT)        //0x1000 0000 0000
 
-#define DBG_DEFAULT (DBG_INIT|DBG_ERROR)
+#define DBG_DEFAULT (DBG_INIT|DBG_ERROR)          //0x0000 0000 0011
 
-extern uint32_t g_debug_levels;
+extern uint32_t g_debug_levels;                   //0x0000 0000 0011
 
 #define IF_DEBUG(level) \
         if (unlikely(g_debug_levels & (level)))
@@ -70,13 +70,10 @@ extern uint32_t g_debug_levels;
         IF_DEBUG(DBG_LOG) { debug_log_no_filter(true, "%s: " format, __FUNCTION__, ##args); }
 #define DEBUG_TIMER(format, args...) \
         IF_DEBUG(DBG_TIMER) { debug_log_no_filter(true, "%s: " format, __FUNCTION__, ##args); }
-
 #define DEBUG_POLICY(format, args...) \
         IF_DEBUG(DBG_POLICY) { debug_log_no_filter(true, "%s: " format, __FUNCTION__, ##args); }
-
 #define DEBUG_DLP(format, args...) \
         IF_DEBUG(DBG_DETECT) { debug_log_no_filter(true, "%s: " format, __FUNCTION__, ##args); }
-        
 #define DEBUG_FUNC_ENTRY(level) \
         IF_DEBUG(level) { debug_log_no_filter(true, "%s: enter\n", __FUNCTION__); }
 

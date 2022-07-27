@@ -6,6 +6,7 @@
 #include <iostream>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <cstring>
 #include "base/config/config.h"
 #include "logger.h"
 #include "base.h"
@@ -19,7 +20,6 @@ static inline int debug_ts(FILE *logfp) {
     struct timeval now;
     struct tm *tm;
 
-    FILE *logFile;
     if (g_now.tv_sec == 0) {
         //gettimeofday(&now, NULL);
         time_t t = get_current_time();
@@ -28,7 +28,9 @@ static inline int debug_ts(FILE *logfp) {
         now = g_now;
         tm = localtime(&now.tv_sec);
     }
-
+    printf("%04d-%02d-%02dT%02d:%02d:%02d|DEBU|%s|",
+           tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+           tm->tm_hour, tm->tm_min, tm->tm_sec, THREAD_NAME);
     return fprintf(logfp, "%04d-%02d-%02dT%02d:%02d:%02d|DEBU|%s|",
                    tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
                    tm->tm_hour, tm->tm_min, tm->tm_sec, THREAD_NAME);
@@ -36,7 +38,6 @@ static inline int debug_ts(FILE *logfp) {
 
 int debug_stdout(bool print_ts, const char *fmt, va_list args) {
     int len = 0;
-
     pthread_mutex_lock(&g_debug_lock);
     if (print_ts) {
         len = debug_ts(stdout);
