@@ -14,8 +14,6 @@
 
 #define MAX_EPOLL_EVENTS 128
 
-
-
 class DP_CTRL_Thread{
 private:
     int g_ctrl_fd;                                          //agent与ardp的socket句柄文件

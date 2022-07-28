@@ -74,6 +74,7 @@ target_sources(dpi
         "${CMAKE_SOURCE_DIR}/dpi/dpi_session.cc"
         "${CMAKE_SOURCE_DIR}/dpi/dpi_policy.cc"
         "${CMAKE_SOURCE_DIR}/dpi/dpi_log.cc"
+        "${CMAKE_SOURCE_DIR}/dpi/dpi_msg.cc"
         "${CMAKE_SOURCE_DIR}/dpi/dpi_meter.cc"
         "${CMAKE_SOURCE_DIR}/dpi/dpi_debug.cc"
         "${CMAKE_SOURCE_DIR}/dpi/sig/dpi_hs_search.cc"
@@ -100,7 +101,8 @@ target_sources(dpthreads
         "${CMAKE_SOURCE_DIR}/dpthreads/dp_event_cb.cc"
         "${CMAKE_SOURCE_DIR}/dpthreads/dp_pkt.cc"
         "${CMAKE_SOURCE_DIR}/dpthreads/dp_ring.cc"
-        "${CMAKE_SOURCE_DIR}/dpthreads/dp_event_cb.cc"
+        "${CMAKE_SOURCE_DIR}/dpthreads/dp_event.cc"
+        "${CMAKE_SOURCE_DIR}/dpthreads/dp_ctrl_req.cc"
         )
 target_link_libraries(dpthreads dpi)
 

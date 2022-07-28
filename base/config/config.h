@@ -22,7 +22,4 @@
 
 #define FQDN_IPS_PER_MSG ((DP_MSG_SIZE - sizeof(DPMsgHdr) - sizeof(DPMsgFqdnIpHdr)) / sizeof(DPMsgFqdnIp))
 
-#define AGENT_SUCCESS 0
-#define AGENT_FAILED -1
-
 #endif //ARDP_CONFIG_H

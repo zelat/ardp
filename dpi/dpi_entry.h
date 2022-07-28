@@ -5,7 +5,7 @@
 #ifndef ARDP_DPI_ENTRY_H
 #define ARDP_DPI_ENTRY_H
 
-#include "dpi/dpi_module.h"
+#include "apis.h"
 
 void dpi_setup(io_callback_t *cb, io_config_t *cfg);
 void dpi_init(int reason);

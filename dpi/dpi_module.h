@@ -62,6 +62,7 @@ typedef struct dpi_thread_data_ {
     uint32_t hs_detect_id;
     uint8_t xff_enabled;
 } dpi_thread_data_t;
+
 extern dpi_thread_data_t g_dpi_thread_data[];
 
 #define th_packet   (g_dpi_thread_data[THREAD_ID].packet)

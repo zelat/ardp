@@ -25,7 +25,6 @@ extern "C"
 #include "libnetfilter_queue/libnetfilter_queue.h"
 #include "dp_ring.h"
 
-
 void DP_Ring::dp_tx_flush(dp_context_t *ctx, int limit) {
     if (ctx->tx_pending >= limit && ctx->tx_pending > 0) {
         send(ctx->fd, NULL, 0, 0);

@@ -5,7 +5,6 @@
 #ifndef ARDP_EVENT_HANDLER_H
 #define ARDP_EVENT_HANDLER_H
 
-
 #include "event_node.h"
 
 namespace base {
@@ -20,10 +19,12 @@ namespace base {
         int AddEventNode(EventNode * node);
         int RemoveEventNode(EventNode *node);
         void Run();
+        int GetEventFD();
     private:
-        bool _run;
+        bool g_running;
         int event_fd;
     };
 }
 
-#endif //ARDP_EVENT_HANDLER_H
+#endif
+//ARDP_EVENT_HANDLER_H

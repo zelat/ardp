@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include "base.h"
 
 #define DBG_MAC_FORMAT "%02x:%02x:%02x:%02x:%02x:%02x"
 #define DBG_MAC_TUPLE(mac) \

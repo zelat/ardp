@@ -9,14 +9,23 @@
 #include <net/ethernet.h>
 #include <linux/if_packet.h>
 #include "urcu/hlist.h"
+#include "base/config/config.h"
+#include "urcu/rculfhash.h"
+#include "defs.h"
+#include "dpi/dpi_entry.h"
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+#include "base/rcu_map.h"
 #include "base/timer_queue.h"
+#include "base/debug.h"
 #ifdef __cplusplus
 }
 #endif
+
+#define DP_RX_DONE 0
+#define DP_RX_MORE -1
 
 typedef struct rate_limiter_ {
     uint16_t dur;             // in second

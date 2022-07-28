@@ -19,7 +19,6 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-
 #include "urcu/hlist.h"
 #include "dp_ctrl_thread.h"
 #include "dp_pkt.h"
@@ -27,8 +26,6 @@ extern "C"
 #include "dp_ring.h"
 #include "apis.h"
 #include "base.h"
-
-extern dp_mnt_shm_t *g_shm;
 
 #define INLINE_BLOCK 2048
 #define INLINE_BATCH 4096
@@ -46,20 +43,19 @@ extern dp_mnt_shm_t *g_shm;
 #define DP_STATS_FREQ 60            // 1 minute
 #define MAX_EPOLL_EVENTS 128
 
+DP_Ring dpRing;
+extern dp_mnt_shm_t *g_shm;
 int bld_dlp_epoll_fd;
 int bld_dlp_ctrl_req_evfd;
 uint32_t bld_dlp_ctrl_req;
-dp_thread_data_t g_dp_thread_data[MAX_DP_THREADS];
 
-int dp_open_socket(dp_context_t *ctx, const char *iface, bool tap, bool tc, uint blocks, uint batch);
-
-int dp_rx(dp_context_t *ctx, uint32_t tick);
-
-void dp_get_stats(dp_context_t *ctx);
-
-int dp_open_nfq_handle(dp_context_t *ctx, bool jumboframe, uint blocks, uint batch);
-
-DP_Ring dpRing;
+//int dp_open_socket(dp_context_t *ctx, const char *iface, bool tap, bool tc, uint blocks, uint batch);
+//
+//int dp_rx(dp_context_t *ctx, uint32_t tick);
+//
+//void dp_get_stats(dp_context_t *ctx);
+//
+//int dp_open_nfq_handle(dp_context_t *ctx, bool jumboframe, uint blocks, uint batch);
 
 static const char *get_tap_name(char *name, const char *netns, const char *iface) {
     snprintf(name, CTX_NAME_LEN, "%s-%s", netns, iface);
@@ -102,52 +98,27 @@ static int restore_netns(int fd) {
     return 0;
 }
 
-static dp_context_t *
-dp_alloc_context(const char *iface, int thr_id, bool tap, bool jumboframe, uint blocks, uint batch) {
-    int fd;
-    dp_context_t *ctx;
-    ctx = (dp_context_t *) calloc(1, sizeof(*ctx));
-    if (ctx == nullptr) {
-        return nullptr;
+static int dp_epoll_remove_ctx(dp_context_t *ctx)
+{
+    if (!ctx->epoll) {
+        return 0;
     }
 
-    fd = dpRing.dp_open_socket(ctx, iface, tap, jumboframe, blocks, batch);
-    if (fd < 0) {
-        printf("fail to open dp socket, iface=%s\n", iface);
-        free(ctx);
-        return nullptr;
+    if (epoll_ctl(th_epoll_fd(ctx->thr_id), EPOLL_CTL_DEL, ctx->fd, &ctx->ee) == -1) {
+        // Generate unnecessary error message when dp exits
+        // DEBUG_ERROR(DBG_CTRL, "fail to delete socket from epoll: %s\n", strerror(errno));
+        return -1;
     }
 
-    ctx->thr_id = thr_id;
-    ctx->fd = fd;
-    ctx->tap = tap;
-    ctx->tc = true;
-    ctx->jumboframe = jumboframe;
-    ctx->nfq = false;
-
-    printf("ctx=%p\n", ctx);
-
-    return ctx;
-}
-
-static dp_context_t *dp_lookup_context(struct cds_hlist_head *list, const char *name) {
-    dp_context_t *ctx;
-    struct cds_hlist_node *itr;
-
-    cds_hlist_for_each_entry_rcu(ctx, itr, list, link) {
-        if (strcmp(ctx->name, name) == 0) {
-            return ctx;
-        }
-    }
-
-    return NULL;
+    ctx->epoll = false;
+    return 0;
 }
 
 static int dp_epoll_add_ctx(dp_context_t *ctx, int thr_id)
 {
     ctx->ee.events = EPOLLIN;
     ctx->ee.data.ptr = ctx;
-    if (epoll_ctl(g_dp_thread_data[thr_id].epoll_fd, EPOLL_CTL_ADD, ctx->fd, &ctx->ee) == -1) {
+    if (epoll_ctl(th_epoll_fd(thr_id), EPOLL_CTL_ADD, ctx->fd, &ctx->ee) == -1) {
         // If the fd already in the epoll, not return error.
         if (errno != EEXIST) {
             DEBUG_ERROR(DBG_CTRL, "fail to add socket to epoll: %s\n", strerror(errno));
@@ -160,7 +131,7 @@ static int dp_epoll_add_ctx(dp_context_t *ctx, int thr_id)
 }
 
 /* This function can only be called by dp_dlp_wait_ctrl_req_thr() */
-static int dp_ctrl_wait_dlp_threads() {
+int dp_ctrl_wait_dlp_threads() {
     int rc = 0;
 
     while (1) {
@@ -182,6 +153,7 @@ static int dp_ctrl_wait_dlp_threads() {
     return rc;
 }
 
+//创建一个用于通信的fd文件
 dp_context_t *dp_add_ctrl_req_event(int thr_id)
 {
     int fd;
@@ -201,10 +173,9 @@ dp_context_t *dp_add_ctrl_req_event(int thr_id)
         return NULL;
     }
 
-    //fcntl操作文件描述符
+    //fcntl设置为非阻塞模式
     int flags = fcntl(fd, F_GETFL, 0);
     if (flags != -1) {
-        //设置为非阻塞模式
         fcntl(fd, F_SETFL, flags | O_NONBLOCK);
     }
 
@@ -214,18 +185,17 @@ dp_context_t *dp_add_ctrl_req_event(int thr_id)
     ctx->ee.events = EPOLLIN;
     ctx->ee.data.ptr = ctx;
 
-    if (epoll_ctl(g_dp_thread_data[thr_id].epoll_fd, EPOLL_CTL_ADD, ctx->fd, &ctx->ee) == -1) {
+    if (epoll_ctl(th_epoll_fd(thr_id) , EPOLL_CTL_ADD, ctx->fd, &ctx->ee) == -1) {
         DEBUG_ERROR(DBG_CTRL, "fail to add socket to epoll: %s\n", strerror(errno));
         close(fd);
         free(ctx);
         return NULL;
     }
 
-    g_dp_thread_data[thr_id].ctrl_req_evfd = fd;
+    th_ctrl_req_evfd(thr_id) = fd;
 
     return ctx;
 }
-
 
 int dp_data_add_port(const char *iface, bool jumboframe, int thr_id) {
     int ret = 0;
@@ -233,18 +203,18 @@ int dp_data_add_port(const char *iface, bool jumboframe, int thr_id) {
 
     printf("thr_id = %d", thr_id);
     thr_id = thr_id % MAX_DP_THREADS;
-    if (g_dp_thread_data[thr_id].epoll_fd == 0) {
+    if (th_epoll_fd(thr_id) == 0) {
         // TODO: May need to wait a while for dp thread ready
         printf("epoll is not initiated, iface=%s thr_id=%d\n", iface, thr_id);
         return -1;
     }
 
     //该线程已被锁定
-    pthread_mutex_lock(&g_dp_thread_data[thr_id].ctrl_dp_lock);
+    pthread_mutex_lock(&th_ctrl_dp_lock(thr_id));
 
     do {
         printf("testing===================");
-        if (g_dp_thread_data[thr_id].ctx_inline != nullptr) {
+        if (th_ctx_inline(thr_id) != nullptr) {
             printf("iface already exists, iface=%s\n", iface);
             break;
         }
@@ -254,15 +224,15 @@ int dp_data_add_port(const char *iface, bool jumboframe, int thr_id) {
             break;
         }
         ctx->peer_ctx = ctx;
-        g_dp_thread_data[thr_id].ctx_inline = ctx;
+        th_ctx_inline(thr_id) = ctx;
 
         strlcpy(ctx->name, iface, sizeof(ctx->name));
-        cds_hlist_add_head(&ctx->link, &g_dp_thread_data[thr_id].ctx_list);
+        cds_hlist_add_head(&ctx->link, &th_ctx_list(thr_id));
 
         printf("added iface=%s fd=%d\n", iface, ctx->fd);
     } while (false);
 
-    pthread_mutex_unlock(&g_dp_thread_data[thr_id].ctrl_dp_lock);
+    pthread_mutex_unlock(&th_ctrl_dp_lock(thr_id));
     return ret;
 }
 
@@ -291,9 +261,9 @@ int dp_data_add_tap(const char *netns, const char *iface, const char *ep_mac, in
     dp_context_t *ctx;
     thr_id = thr_id % MAX_DP_THREADS;
 
-    printf("g_dp_thread_data[thr_id].epoll_fd = %d", g_dp_thread_data[thr_id].epoll_fd);
+    printf("th_epoll_fd(thr_id)  = %d", th_epoll_fd(thr_id) );
 
-    if (g_dp_thread_data[thr_id].epoll_fd == 0) {
+    if (th_epoll_fd(thr_id)  == 0) {
         // TODO: May need to wait a while for dp thread ready
 //        DEBUG_ERROR(DBG_CTRL, "epoll is not initiated, netns=%s thr_id=%d\n", netns, thr_id);
         printf("epoll is not initiated, netns=%s thr_id=%d\n", netns, thr_id);
@@ -305,12 +275,12 @@ int dp_data_add_tap(const char *netns, const char *iface, const char *ep_mac, in
         return -1;
     }
 
-    pthread_mutex_lock(&g_dp_thread_data[thr_id].ctrl_dp_lock);
+    pthread_mutex_lock(&th_ctrl_dp_lock(thr_id));
 
     do {
         char name[CTX_NAME_LEN];
         get_tap_name(name, netns, iface);
-        ctx = dp_lookup_context(&g_dp_thread_data[thr_id].ctx_list, name);
+        ctx = dp_lookup_context(&th_ctx_list(thr_id), name);
         if (ctx != NULL) {
             // handle mac address change
             ether_aton_r(ep_mac, &ctx->ep_mac);
@@ -334,14 +304,99 @@ int dp_data_add_tap(const char *netns, const char *iface, const char *ep_mac, in
 
         ether_aton_r(ep_mac, &ctx->ep_mac);
         strlcpy(ctx->name, name, sizeof(ctx->name));
-        cds_hlist_add_head_rcu(&ctx->link, &g_dp_thread_data[thr_id].ctx_list);
+        cds_hlist_add_head_rcu(&ctx->link, &th_ctx_list(thr_id));
 
         DEBUG_CTRL("tap added netns=%s iface=%s fd=%d\n", netns, iface, ctx->fd);
     } while (false);
 
-    pthread_mutex_unlock(&g_dp_thread_data[thr_id].ctrl_dp_lock);
+    pthread_mutex_unlock(&th_ctrl_dp_lock(thr_id));
 
     restore_netns(curns_fd);
 
     return ret;
+}
+
+dp_context_t *dp_lookup_context(struct cds_hlist_head *list, const char *name) {
+    dp_context_t *ctx;
+    struct cds_hlist_node *itr;
+
+    cds_hlist_for_each_entry_rcu(ctx, itr, list, link) {
+        if (strcmp(ctx->name, name) == 0) {
+            return ctx;
+        }
+    }
+
+    return NULL;
+}
+
+dp_context_t *dp_alloc_context(const char *iface, int thr_id, bool tap, bool jumboframe, uint blocks, uint batch) {
+    int fd;
+    dp_context_t *ctx;
+    ctx = (dp_context_t *) calloc(1, sizeof(*ctx));
+    if (ctx == nullptr) {
+        return nullptr;
+    }
+
+    fd = dpRing.dp_open_socket(ctx, iface, tap, jumboframe, blocks, batch);
+    if (fd < 0) {
+        printf("fail to open dp socket, iface=%s\n", iface);
+        free(ctx);
+        return nullptr;
+    }
+
+    ctx->thr_id = thr_id;
+    ctx->fd = fd;
+    ctx->tap = tap;
+    ctx->tc = true;
+    ctx->jumboframe = jumboframe;
+    ctx->nfq = false;
+
+    printf("ctx=%p\n", ctx);
+
+    return ctx;
+}
+
+void dp_refresh_stats(struct cds_hlist_head *list)
+{
+    dp_context_t *ctx;
+    struct cds_hlist_node *itr;
+
+    cds_hlist_for_each_entry_rcu(ctx, itr, list, link) {
+        dp_get_stats(ctx);
+    }
+}
+
+// Not to release socket memory if 'kill' is false
+void dp_release_context(dp_context_t *ctx, bool kill)
+{
+    DEBUG_CTRL("ctx=%s fd=%d\n", ctx->name, ctx->fd);
+
+    cds_hlist_del(&ctx->link);
+    dp_epoll_remove_ctx(ctx);
+
+    if (kill) {
+        dpRing.dp_close_socket(ctx);
+        free(ctx);
+    } else {
+        DEBUG_CTRL("add context to free list, ctx=%s, ts=%u\n", ctx->name, g_seconds);
+        timer_queue_append(&th_ctx_free_list(ctx->thr_id), &ctx->free_node, g_seconds);
+        ctx->released = 1;
+    }
+}
+
+void dp_remove_context(timer_node_t *node)
+{
+    dp_context_t *ctx = STRUCT_OF(node, dp_context_t, free_node);
+    DEBUG_CTRL("ctx=%s\n", ctx->name);
+    dpRing.dp_close_socket(ctx);
+    free(ctx);
+}
+
+void dp_get_stats(dp_context_t *ctx)
+{
+    if (ctx->nfq) {
+        ctx->nfq_ctx.stats(ctx);
+    } else {
+        ctx->ring.stats(ctx->fd, &ctx->stats);
+    }
 }

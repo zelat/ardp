@@ -19,11 +19,21 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-#include "base.h"
 #include "dp_ctrl_thread.h"
 #include "dp_types.h"
+#include "dp_pkt.h"
+#include "base/event_handler.h"
+#include "dp_event.h"
+#include "urcu/rcuhlist.h"
 
 using namespace std;
+
+#define RELEASED_CTX_TIMEOUT 5      // 10 second
+#define RELEASED_CTX_PRUNE_FREQ 5   // 10 second
+#define DP_STATS_FREQ 60            // 1 minute
+
+uint32_t g_sess_id_to_clear = 0;
+struct ether_addr *g_mac_addr_to_del = NULL;
 
 pthread_cond_t g_ctrl_req_cond;
 pthread_mutex_t g_ctrl_req_lock;
@@ -36,9 +46,9 @@ io_internal_subnet4_t *g_policy_addr;
 io_spec_internal_subnet4_t *g_specialip_subnet4;
 uint8_t g_xff_enabled = 0;
 
+extern DP_Ring dpRing;
 extern dp_mnt_shm_t *g_shm;
 extern int g_running;
-extern dp_thread_data_t g_dp_thread_data[MAX_DP_THREADS];
 extern int dp_data_add_port(const char *iface, bool jumboframe, int thr_id);
 extern dp_context_t *dp_add_ctrl_req_event(int thr_id);
 
@@ -381,11 +391,10 @@ void *DP_CTRL_Thread::dp_data_thr(void *args) {
     snprintf(THREAD_NAME, MAX_THREAD_NAME_LEN, "dp%u", thr_id);
 
     // Create epoll, add ctrl_req event
-    if ((g_dp_thread_data[thr_id].epoll_fd = epoll_create(MAX_EPOLL_EVENTS)) < 0) {
-        DEBUG_INIT("failed to create epoll, thr_id=%u\n", thr_id);
-        return NULL;
-    }
-    DEBUG_INIT("success to create epoll, thr_id=%u\n", thr_id);
+    DP_Event dpEvent(thr_id);
+    dpEvent.Init();
+
+    //创建一个用于通信的fd文件
     ctrl_req_ev_ctx = dp_add_ctrl_req_event(thr_id);
     if (ctrl_req_ev_ctx == NULL) {
         return NULL;
@@ -394,14 +403,15 @@ void *DP_CTRL_Thread::dp_data_thr(void *args) {
     rcu_register_thread();
 
     g_shm->dp_active[thr_id] = true;
-//    pthread_mutex_init(&g_dp_thread_data[thr_id].ctrl_dp_lock, NULL);
-//    CDS_INIT_HLIST_HEAD(&g_dp_thread_data[thr_id].ctx_list);
-//    timer_queue_init(&g_dp_thread_data[thr_id].ctx_free_list, RELEASED_CTX_TIMEOUT);
-//
-//    //初始化每个线程
-//    dpi_init(DPI_INIT);
-//
-//    DEBUG_INIT("dp thread starts\n");
+    pthread_mutex_init(&th_ctrl_dp_lock(thr_id), NULL);
+    CDS_INIT_HLIST_HEAD(&th_ctx_list(thr_id));
+    timer_queue_init(&th_ctx_free_list(thr_id), RELEASED_CTX_TIMEOUT);
+
+    //初始化每个线程
+    dpi_init(DPI_INIT);
+    DEBUG_INIT("dp thread starts\n");
+    dpEvent.Run();
+
     return nullptr;
 }
 
