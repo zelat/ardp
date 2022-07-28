@@ -23,6 +23,7 @@ private:
     uint8_t g_notify_msg[DP_MSG_SIZE];
     dpi_fqdn_hdl_t *g_fqdn_hdl;
     rcu_map_t g_ep_map;
+    static dp_mnt_shm_t *dp_shm;
     DomainSocketDPServer socketDpServer;
     DomainSocketCTRLNotify socketCtrlNotify;
 public:

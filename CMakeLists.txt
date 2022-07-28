@@ -95,14 +95,13 @@ add_library(dpthreads "")
 target_sources(dpthreads
         PRIVATE
         "${CMAKE_SOURCE_DIR}/dpthreads/dp_ctrl_thread.cc"
-        "${CMAKE_SOURCE_DIR}/dpthreads/dp_ctrl_handler.cc"
         "${CMAKE_SOURCE_DIR}/dpthreads/domain_socket_ctrl_dp.cc"
         "${CMAKE_SOURCE_DIR}/dpthreads/domain_socket_ctrl_notify.cc"
-        "${CMAKE_SOURCE_DIR}/dpthreads/dp_event_cb.cc"
+        "${CMAKE_SOURCE_DIR}/dpthreads/dp_event.cc"
+        "${CMAKE_SOURCE_DIR}/dpthreads/dp_context.cc"
         "${CMAKE_SOURCE_DIR}/dpthreads/dp_pkt.cc"
         "${CMAKE_SOURCE_DIR}/dpthreads/dp_ring.cc"
         "${CMAKE_SOURCE_DIR}/dpthreads/dp_event.cc"
-        "${CMAKE_SOURCE_DIR}/dpthreads/dp_ctrl_req.cc"
         )
 target_link_libraries(dpthreads dpi)
 

@@ -45,7 +45,7 @@ io_spec_internal_subnet4_t *g_specialip_subnet4;
 uint8_t g_xff_enabled = 0;
 
 extern DP_Ring dpRing;
-extern dp_mnt_shm_t *g_shm;
+//extern dp_mnt_shm_t *g_shm;
 extern int g_running;
 extern int dp_data_add_port(const char *iface, bool jumboframe, int thr_id);
 extern dp_context_t *dp_add_ctrl_req_event(int thr_id);
@@ -77,6 +77,8 @@ static void dp_rate_limiter_reset(dp_rate_limter_t *rl, uint16_t dur, uint16_t d
     rl->start = get_current_time();
 }
 
+
+dp_mnt_shm_t * DP_CTRL_Thread::dp_shm = g_shm;
 
 //初始化dp线程池
 int DP_CTRL_Thread::Init(dp_thread_data_t *dp_thread_data) {
@@ -385,14 +387,16 @@ void *DP_CTRL_Thread::dp_data_thr(void *args) {
     dp_context_t *ctrl_req_ev_ctx;
 
     thr_id = thr_id % MAX_DP_THREADS;
-
     THREAD_ID = thr_id;
     snprintf(THREAD_NAME, MAX_THREAD_NAME_LEN, "dp%u", thr_id);
 
     // Create epoll, add ctrl_req event
     DP_Event dpEvent(thr_id);
-    dpEvent.Init();
-
+    printf("------------------------------\n");
+    if (dpEvent.Init() != 0 ){
+        printf("初始化失败");
+        return nullptr;
+    }
     //创建一个用于通信的fd文件
     ctrl_req_ev_ctx = dp_add_ctrl_req_event(thr_id);
     if (ctrl_req_ev_ctx == NULL) {
@@ -400,18 +404,35 @@ void *DP_CTRL_Thread::dp_data_thr(void *args) {
     }
 
     rcu_register_thread();
-
-    g_shm->dp_active[thr_id] = true;
+//    dp_shm->dp_active[thr_id] = true;
     pthread_mutex_init(&th_ctrl_dp_lock(thr_id), NULL);
     CDS_INIT_HLIST_HEAD(&th_ctx_list(thr_id));
     timer_queue_init(&th_ctx_free_list(thr_id), RELEASED_CTX_TIMEOUT);
 
     //初始化每个线程
     dpi_init(DPI_INIT);
-    DEBUG_INIT("dp thread starts\n");
+    //事件监听
     dpEvent.Run();
 
-    return nullptr;
+    close(th_epoll_fd(thr_id));
+    th_epoll_fd(thr_id) = 0;
+
+    DEBUG_INIT("dp thread exits\n");
+
+    struct cds_hlist_node *itr, *next;
+    dp_context_t *ctx;
+    pthread_mutex_lock(&th_ctrl_dp_lock(thr_id));
+    cds_hlist_for_each_entry_safe(ctx, itr, next, &th_ctx_list(thr_id), link) {
+        dp_release_context(ctx, true);
+    }
+    pthread_mutex_unlock(&th_ctrl_dp_lock(thr_id));
+
+    close(ctrl_req_ev_ctx->fd);
+    free(ctrl_req_ev_ctx);
+
+    rcu_unregister_thread();
+
+    return NULL;
 }
 
 

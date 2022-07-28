@@ -169,8 +169,10 @@ int main(int argc, char **argv){
 
     if (pcap != NULL){
         g_callback.debug = debug_stdout;
+        dpi_setup(&g_callback, &g_config);
     } else {
         g_callback.debug = debug_stdout;
+        dpi_setup(&g_callback, &g_config);
     }
 
 //    test_dpi_hs_search dpiHsSearch();

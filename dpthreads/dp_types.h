@@ -146,6 +146,6 @@ typedef struct dp_context_ {
     struct dp_context_ *peer_ctx; // for vbr peer is self, for no-tc vin/vex pair with each other.
 } dp_context_t;
 
-extern dp_thread_data_t g_dp_thread_data[MAX_DP_THREADS];
-
+extern dp_thread_data_t g_dp_thread_data[];
+extern dp_mnt_shm_t *g_shm;
 #endif //ARDP_DP_TYPES_H

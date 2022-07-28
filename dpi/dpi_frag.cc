@@ -433,7 +433,6 @@ void dpi_frag_send(void *frag_trac, io_ctx_t *ctx)
 void dpi_frag_init(void)
 {
     DEBUG_LOG_FUNC_ENTRY(DBG_INIT, NULL);
-
     rcu_map_init(&th_ip4frag_map, 1, offsetof(ip4frag_trac_t, node),
                  ip4frag_trac_match, ip4frag_trac_hash);
     rcu_map_init(&th_ip6frag_map, 1, offsetof(ip6frag_trac_t, node),

@@ -8,21 +8,22 @@
 #include <unistd.h>
 #include "dp_pkt.h"
 #include "dp_event.h"
+#include "dp_types.h"
 
-#define AGENT_SUCCESS 0
-#define AGENT_FAILED -1
+#define EPOLL_SUCCESS 0
+#define EPOLL_FAILED -1
 #define RELEASED_CTX_TIMEOUT 5      // 10 second
 #define RELEASED_CTX_PRUNE_FREQ 5   // 10 second
 #define DP_STATS_FREQ 60            // 1 minute
 
 extern DP_Ring dpRing;
-extern dp_mnt_shm_t *g_shm;
+//extern dp_mnt_shm_t *g_shm;
 
 
 DP_Event::DP_Event(int threadID) {
     thr_id = threadID;
-    dp_running = false;
-    event_fd = AGENT_FAILED;
+    dp_running = true;
+    event_fd = EPOLL_FAILED;
 }
 
 DP_Event::~DP_Event() {
@@ -30,17 +31,18 @@ DP_Event::~DP_Event() {
 }
 
 int DP_Event::Init() {
-    event_fd = epoll_create1(EPOLL_CLOEXEC);
+    event_fd = epoll_create(MAX_EPOLL_EVENTS);
     if ((th_epoll_fd(thr_id) = event_fd) < 0) {
         DEBUG_INIT("failed to create epoll, thr_id=%u\n", thr_id);
-        return AGENT_FAILED;
+        return EPOLL_FAILED;
     }
     DEBUG_INIT("success to create epoll, thr_id=%u\n", thr_id);
+    return EPOLL_SUCCESS;
 }
 
 void DP_Event::Exit() {
     if (dp_running) { dp_running = false; }
-    if (event_fd != AGENT_FAILED) { close(event_fd); }
+    if (event_fd != EPOLL_FAILED) { close(event_fd); }
 }
 
 int DP_Event::AddEventNode(dp_context_t *ctx) {
