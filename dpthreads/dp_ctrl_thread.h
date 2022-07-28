@@ -11,6 +11,7 @@
 #include "base/config/config.h"
 #include "domain_socket_ctrl_dp.h"
 #include "domain_socket_ctrl_notify.h"
+#include "dp_types.h"
 
 #define MAX_EPOLL_EVENTS 128
 
@@ -25,7 +26,7 @@ private:
     DomainSocketDPServer socketDpServer;
     DomainSocketCTRLNotify socketCtrlNotify;
 public:
-    int Init();
+    int Init(dp_thread_data_t *dp_thread_data);
     void Exit();
     void dp_ctrl_loop();
     static void *dp_bld_dlp_thr(void *args);

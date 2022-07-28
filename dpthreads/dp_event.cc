@@ -6,9 +6,8 @@
 #include <sys/epoll.h>
 #include <cstring>
 #include <unistd.h>
-#include "dp_event.h"
 #include "dp_pkt.h"
-#include "dp_types.h"
+#include "dp_event.h"
 
 #define AGENT_SUCCESS 0
 #define AGENT_FAILED -1

@@ -8,7 +8,7 @@
 #include "dp_types.h"
 #include "dp_ring.h"
 
-dp_thread_data_t g_dp_thread_data[MAX_DP_THREADS];
+extern dp_thread_data_t g_dp_thread_data[MAX_DP_THREADS];
 
 #define th_epoll_fd(thr_id)      (g_dp_thread_data[thr_id].epoll_fd)
 #define th_ctx_list(thr_id)      (g_dp_thread_data[thr_id].ctx_list)

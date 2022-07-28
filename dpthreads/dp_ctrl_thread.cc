@@ -5,8 +5,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <iostream>
-#include <base/utils/singleton.h>
-
+#include "urcu/rcuhlist.h"
 #ifdef __cplusplus
 extern "C"
 {
@@ -21,10 +20,9 @@ extern "C"
 #endif
 #include "dp_ctrl_thread.h"
 #include "dp_types.h"
-#include "dp_pkt.h"
-#include "base/event_handler.h"
 #include "dp_event.h"
-#include "urcu/rcuhlist.h"
+#include "dp_pkt.h"
+
 
 using namespace std;
 
@@ -79,11 +77,12 @@ static void dp_rate_limiter_reset(dp_rate_limter_t *rl, uint16_t dur, uint16_t d
     rl->start = get_current_time();
 }
 
+
 //初始化dp线程池
-int DP_CTRL_Thread::Init() {
+int DP_CTRL_Thread::Init(dp_thread_data_t *dp_thread_data) {
     int thread_id, i;
     for (thread_id = 0; thread_id < g_dp_threads; thread_id++) {
-        dp_thread_data_t *th_data = &g_dp_thread_data[thread_id];      //th_data每个dp线程的数据
+        dp_thread_data_t *th_data = &dp_thread_data[thread_id];      //th_data每个dp线程的数据
         th_data->log_reader = MAX_LOG_ENTRIES - 1;
         for (i = 0; i < MAX_LOG_ENTRIES; i++) {
             auto *hdr = (DPMsgHdr *) th_data->log_ring[i];
@@ -414,6 +413,8 @@ void *DP_CTRL_Thread::dp_data_thr(void *args) {
 
     return nullptr;
 }
+
+
 
 
 

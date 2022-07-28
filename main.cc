@@ -50,6 +50,8 @@ pthread_mutex_t g_debug_lock;
 struct cds_list_head g_subnet4_list;
 struct cds_list_head g_subnet6_list;
 
+dp_thread_data_t g_dp_thread_data[MAX_DP_THREADS];
+
 /* 中断dp的运行 */
 static void dp_signal_exit(int num)
 {
@@ -100,7 +102,7 @@ static int net_run(const char *iface){
 
     DP_CTRL_Thread dpCtrlThread;
 
-    dpCtrlThread.Init();
+    dpCtrlThread.Init(g_dp_thread_data);
 
     pthread_create(&timer_thr, NULL, debug_timer_thr, &timer_thr_id);
 //    pthread_create(&bld_dlp_thr, NULL, &DP_CTRL_Thread::dp_bld_dlp_thr, &bld_dlp_thr_id);
