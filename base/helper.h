@@ -63,9 +63,9 @@ static inline uint32_t ip4_get(uint8_t *ip)
     return *(uint32_t *)ip;
 }
 
-static inline uint32_t sdbm_hash(register const uint8_t *a, register int len)
+static inline uint32_t sdbm_hash(const uint8_t *a, int len)
 {
-    register uint32_t hash = 0;
+    uint32_t hash = 0;
 
     while (len > 0) {
         hash = *a + (hash << 6) + (hash << 16) - hash;

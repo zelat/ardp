@@ -13,7 +13,6 @@ void debug_log_no_filter(bool print_ts, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    vprintf(fmt, args);
     g_callback.debug(print_ts, fmt, args);
     va_end(args);
 }

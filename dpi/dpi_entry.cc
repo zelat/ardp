@@ -600,13 +600,11 @@ void dpi_timeout(uint32_t tick)
         timer_wheel_start(&th_timer, tick);
     }
 
-    //DEBUG_LOG(DBG_TIMER, NULL, "tick=%u\n", tick);
-
     rcu_read_lock();
     uint32_t cnt = timer_wheel_roll(&th_timer, tick);
     rcu_read_unlock();
-
     if (cnt > 0) {
-        DEBUG_LOG(DBG_TIMER, NULL, "tick=%u expires=%u\n", tick, cnt);
+        printf("tick=%u expires=%u\n", tick, cnt);
+//        DEBUG_LOG(DBG_TIMER, NULL, "tick=%u expires=%u\n", tick, cnt);
     }
 }

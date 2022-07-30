@@ -2,13 +2,20 @@
 // Created by tanchao on 2022/7/12.
 //
 
-#include <cerrno>
+#include <string.h>
+#include <errno.h>
 #include <sys/epoll.h>
-#include <cstring>
 #include <unistd.h>
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+#include "base/debug.h"
+#ifdef __cplusplus
+}
+#endif
 #include "dp_pkt.h"
 #include "dp_event.h"
-#include "dp_types.h"
 
 #define EPOLL_SUCCESS 0
 #define EPOLL_FAILED -1
@@ -17,14 +24,9 @@
 #define DP_STATS_FREQ 60            // 1 minute
 
 extern DP_Ring dpRing;
-//extern dp_mnt_shm_t *g_shm;
 
-
-DP_Event::DP_Event(int threadID) {
-    thr_id = threadID;
-    dp_running = true;
-    event_fd = EPOLL_FAILED;
-}
+DP_Event::DP_Event(int ThreadID)
+    :threat_id(ThreadID), dp_running(true), event_fd(EPOLL_FAILED){}
 
 DP_Event::~DP_Event() {
     Exit();
@@ -32,11 +34,11 @@ DP_Event::~DP_Event() {
 
 int DP_Event::Init() {
     event_fd = epoll_create(MAX_EPOLL_EVENTS);
-    if ((th_epoll_fd(thr_id) = event_fd) < 0) {
-        DEBUG_INIT("failed to create epoll, thr_id=%u\n", thr_id);
+    if ((th_epoll_fd(threat_id) = event_fd) < 0) {
+//        DEBUG_INIT("failed to create epoll, thr_id=%u\n", threat_id);
         return EPOLL_FAILED;
     }
-    DEBUG_INIT("success to create epoll, thr_id=%u\n", thr_id);
+//    DEBUG_INIT("success to create epoll, thr_id=%d\n", 111);
     return EPOLL_SUCCESS;
 }
 
@@ -91,7 +93,7 @@ void DP_Event::Run() {
     //收集 epoll 监控的事件中已经发⽣的事件
     while (dp_running) {
         // Check if polling context exist, if yes, keep polling it.
-        dp_context_t *polling_ctx = th_ctx_inline(thr_id);
+        dp_context_t *polling_ctx = th_ctx_inline(threat_id);
         if (likely(polling_ctx != NULL)) {
             if (likely(dpRing.dp_rx(polling_ctx, g_seconds) == DP_RX_MORE)) {
                 tmo = NO_WAIT;
@@ -107,7 +109,7 @@ void DP_Event::Run() {
         }
 
         int i, evs;
-        evs = epoll_wait(th_epoll_fd(thr_id), epoll_evs, MAX_EPOLL_EVENTS, tmo);
+        evs = epoll_wait(th_epoll_fd(threat_id), epoll_evs, MAX_EPOLL_EVENTS, tmo);
         if (evs > 0) {
             for (i = 0; i < evs; i++) {
                 struct epoll_event *ee = &epoll_evs[i];
@@ -119,21 +121,21 @@ void DP_Event::Run() {
                     DEBUG_ERROR(DBG_CTRL, "epoll error: %s\n", ctx->name);
 
                     if (ctx != polling_ctx) {
-                        pthread_mutex_lock(&th_ctrl_dp_lock(thr_id));
-                        if (dp_lookup_context(&th_ctx_list(thr_id), ctx->name)) {
+                        pthread_mutex_lock(&th_ctrl_dp_lock(threat_id));
+                        if (dp_lookup_context(&th_ctx_list(threat_id), ctx->name)) {
                             dp_release_context(ctx, false);
                         }
-                        pthread_mutex_unlock(&th_ctrl_dp_lock(thr_id));
+                        pthread_mutex_unlock(&th_ctrl_dp_lock(threat_id));
                     }
                 } else if (ee->events & EPOLLIN) {
-                    if (ctx->fd == th_ctrl_req_evfd(thr_id)) {
+                    if (ctx->fd == th_ctrl_req_evfd(threat_id)) {
                         uint64_t cnt;
                         read(ctx->fd, &cnt, sizeof(uint64_t));
-                        if (th_ctrl_req_evfd(thr_id)) {
+                        if (th_ctrl_req_evfd(threat_id)) {
                             io_ctx_t context;
                             context.tick = g_seconds;
                             context.tap = ctx->tap;
-                            dpi_handle_ctrl_req(th_ctrl_req(thr_id), &context);
+                            dpi_handle_ctrl_req(th_ctrl_req(threat_id), &context);
                         }
                     } else {
                         dpRing.dp_rx(ctx, g_seconds);
@@ -148,7 +150,7 @@ void DP_Event::Run() {
 
         if (unlikely(g_seconds - last_seconds >= 1)) {
             // Only one thread update the global variable
-            if (thr_id == 0) {
+            if (threat_id == 0) {
                 static int stats_tick = 0;
                 if (++stats_tick >= STATS_INTERVAL) {
                     g_stats_slot++;
@@ -158,21 +160,20 @@ void DP_Event::Run() {
 
             static int ctx_tick = 0;
             if (++ctx_tick >= RELEASED_CTX_PRUNE_FREQ) {
-                timer_queue_trim(&th_ctx_free_list(thr_id), g_seconds, dp_remove_context);
+                timer_queue_trim(&th_ctx_free_list(threat_id), g_seconds, dp_remove_context);
                 ctx_tick = 0;
             }
 
             static int stats_tick = 0;
             if (++stats_tick >= DP_STATS_FREQ) {
-                pthread_mutex_lock(&th_ctrl_dp_lock(thr_id));
-                dp_refresh_stats(&th_ctx_list(thr_id));
-                pthread_mutex_unlock(&th_ctrl_dp_lock(thr_id));
+                pthread_mutex_lock(&th_ctrl_dp_lock(threat_id));
+                dp_refresh_stats(&th_ctx_list(threat_id));
+                pthread_mutex_unlock(&th_ctrl_dp_lock(threat_id));
                 stats_tick = 0;
             }
-
             dpi_timeout(g_seconds);
             // Update heartbeat
-            g_shm->dp_hb[thr_id]++;
+//            g_shm->dp_hb[threat_id]++;
             last_seconds = g_seconds;
         }
     }

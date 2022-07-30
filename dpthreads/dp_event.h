@@ -5,14 +5,11 @@
 #ifndef ARDP_DP_EVENT_H
 #define ARDP_DP_EVENT_H
 
-#include "base/event_node.h"
-#include "dp_types.h"
-
 #define MAX_EPOLL_EVENTS 128
 
 class DP_Event {
 public:
-    DP_Event(int threadID);
+    DP_Event(int ThreadID);
     virtual ~DP_Event();
     int Init();
     void Exit();
@@ -21,7 +18,7 @@ public:
     void Run();
     int GetEventFd();
 private:
-    int thr_id;
+    int threat_id;
     struct epoll_event epoll_evs[MAX_EPOLL_EVENTS];
     int event_fd;
     bool dp_running;

@@ -12,11 +12,19 @@
 #include "base.h"
 #include "apis.h"
 
+uint32_t g_seconds;
+time_t g_start_time;
+
 extern struct timeval g_now;
 extern bool g_running;
 extern pthread_mutex_t g_debug_lock;
 
-static inline int debug_ts(FILE *logfp) {
+time_t get_current_time()
+{
+    return (g_start_time + g_seconds);
+}
+
+static int debug_ts(FILE *logfp) {
     struct timeval now;
     struct tm *tm;
 
@@ -28,9 +36,6 @@ static inline int debug_ts(FILE *logfp) {
         now = g_now;
         tm = localtime(&now.tv_sec);
     }
-    printf("%04d-%02d-%02dT%02d:%02d:%02d|DEBU|%s|",
-           tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
-           tm->tm_hour, tm->tm_min, tm->tm_sec, THREAD_NAME);
     return fprintf(logfp, "%04d-%02d-%02dT%02d:%02d:%02d|DEBU|%s|",
                    tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
                    tm->tm_hour, tm->tm_min, tm->tm_sec, THREAD_NAME);
@@ -79,29 +84,6 @@ int debug_file(bool print_ts, const char *fmt, va_list args) {
     return len;
 }
 
-/* 修正时间误差 */
-void *debug_timer_thr(void *args) {
-    snprintf(THREAD_NAME, MAX_THREAD_NAME_LEN, "tmr");
-    g_start_time = time(NULL);
-    while (g_running) {
-        sleep(1);
-        g_seconds ++;
-        // 每隔30S纪录一次时间
-        if ((g_seconds & 0x1f) == 0) {
-            time_t time_elapsed = time(NULL) - g_start_time;
-            time_t curTime = time(NULL);
-            printf("CurrentTime is %s", ctime(&curTime));
-            printf("Starttime is %s", ctime(&g_start_time));
-            //修正时间误差
-            if (time_elapsed > g_seconds) {
-//                DEBUG_TIMER("Advance timer for %us\n", time_elapsed - g_seconds);
-                std::cout << "Advance timer for " << time_elapsed - g_seconds << std::endl;
-                g_seconds = time_elapsed;
-            }
-        }
-    }
-    return NULL;
-}
 
 
 

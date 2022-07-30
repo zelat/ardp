@@ -146,6 +146,12 @@ typedef struct dp_context_ {
     struct dp_context_ *peer_ctx; // for vbr peer is self, for no-tc vin/vex pair with each other.
 } dp_context_t;
 
+void *dp_data_thr(void *args);
+
 extern dp_thread_data_t g_dp_thread_data[];
 extern dp_mnt_shm_t *g_shm;
+extern int g_running;
+extern uint32_t g_seconds;
+extern time_t g_start_time;
+time_t get_current_time();
 #endif //ARDP_DP_TYPES_H

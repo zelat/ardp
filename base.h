@@ -32,13 +32,5 @@ extern "C"
 # define unlikely(x)        __builtin_expect(!!(x), 0)
 #endif
 
-static uint32_t g_seconds;
-static time_t g_start_time;
-
-inline time_t get_current_time()
-{
-    return (g_start_time + g_seconds);
-}
-
 #define RELEASED_CTX_TIMEOUT 5      // 10 second
 #endif //DPI_TEST_BASE_H

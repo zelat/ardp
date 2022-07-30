@@ -5,7 +5,6 @@
 #ifndef ARDP_DP_PKT_H
 #define ARDP_DP_PKT_H
 
-#include "dp_types.h"
 #include "dp_ring.h"
 
 //extern dp_thread_data_t g_dp_thread_data[MAX_DP_THREADS];
@@ -19,7 +18,7 @@
 #define th_ctrl_req(thr_id)      (g_dp_thread_data[thr_id].ctrl_req)
 
 dp_context_t *dp_add_ctrl_req_event(int thr_id);
-int dp_data_add_tap(const char *netns, const char *iface, const char *ep_mac, int thr_id);
+//int dp_data_add_tap(const char *netns, const char *iface, const char *ep_mac, int thr_id);
 dp_context_t *dp_alloc_context(const char *iface, int thr_id, bool tap, bool jumboframe, uint blocks, uint batch);
 dp_context_t *dp_lookup_context(struct cds_hlist_head *list, const char *name);
 void dp_refresh_stats(struct cds_hlist_head *list);

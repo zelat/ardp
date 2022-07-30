@@ -23,7 +23,7 @@ private:
     uint8_t g_notify_msg[DP_MSG_SIZE];
     dpi_fqdn_hdl_t *g_fqdn_hdl;
     rcu_map_t g_ep_map;
-    static dp_mnt_shm_t *dp_shm;
+//    static dp_mnt_shm_t *dp_shm;
     DomainSocketDPServer socketDpServer;
     DomainSocketCTRLNotify socketCtrlNotify;
 public:
@@ -31,7 +31,7 @@ public:
     void Exit();
     void dp_ctrl_loop();
     static void *dp_bld_dlp_thr(void *args);
-    static void *dp_data_thr(void *args);
+//    static void *dp_data_thr(void *args);
 private:
     int dp_ctrl_handler();
 protected:

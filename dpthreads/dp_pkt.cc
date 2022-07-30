@@ -9,7 +9,6 @@
 #include <sys/eventfd.h>
 #include "urcu.h"
 #include "urcu/rcuhlist.h"
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -19,13 +18,9 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-#include "urcu/hlist.h"
 #include "dp_ctrl_thread.h"
 #include "dp_pkt.h"
-#include "dp_types.h"
-#include "dp_ring.h"
-#include "apis.h"
-#include "base.h"
+#include "dp_event.h"
 
 #define INLINE_BLOCK 2048
 #define INLINE_BATCH 4096
@@ -44,7 +39,6 @@ extern "C"
 #define MAX_EPOLL_EVENTS 128
 
 DP_Ring dpRing;
-extern dp_mnt_shm_t *g_shm;
 int bld_dlp_epoll_fd;
 int bld_dlp_ctrl_req_evfd;
 uint32_t bld_dlp_ctrl_req;
@@ -261,12 +255,9 @@ int dp_data_add_tap(const char *netns, const char *iface, const char *ep_mac, in
     dp_context_t *ctx;
     thr_id = thr_id % MAX_DP_THREADS;
 
-    printf("th_epoll_fd(thr_id)  = %d", th_epoll_fd(thr_id) );
-
     if (th_epoll_fd(thr_id)  == 0) {
         // TODO: May need to wait a while for dp thread ready
-//        DEBUG_ERROR(DBG_CTRL, "epoll is not initiated, netns=%s thr_id=%d\n", netns, thr_id);
-        printf("epoll is not initiated, netns=%s thr_id=%d\n", netns, thr_id);
+        DEBUG_ERROR(DBG_CTRL, "epoll is not initiated, netns=%s thr_id=%d\n", netns, thr_id);
         return -1;
     }
 
@@ -274,9 +265,7 @@ int dp_data_add_tap(const char *netns, const char *iface, const char *ep_mac, in
     if ((curns_fd = enter_netns(netns)) < 0) {
         return -1;
     }
-
     pthread_mutex_lock(&th_ctrl_dp_lock(thr_id));
-
     do {
         char name[CTX_NAME_LEN];
         get_tap_name(name, netns, iface);
@@ -351,8 +340,6 @@ dp_context_t *dp_alloc_context(const char *iface, int thr_id, bool tap, bool jum
     ctx->jumboframe = jumboframe;
     ctx->nfq = false;
 
-    printf("ctx=%p\n", ctx);
-
     return ctx;
 }
 
@@ -399,4 +386,80 @@ void dp_get_stats(dp_context_t *ctx)
     } else {
         ctx->ring.stats(ctx->fd, &ctx->stats);
     }
+}
+
+
+void *dp_data_thr(void *args) {
+    struct epoll_event epoll_evs[MAX_EPOLL_EVENTS];
+    uint32_t tmo;
+    int thr_id = *(int *)args;
+    dp_context_t *ctrl_req_ev_ctx;
+
+    thr_id = thr_id % MAX_DP_THREADS;
+    THREAD_ID = thr_id;
+    snprintf(THREAD_NAME, MAX_THREAD_NAME_LEN, "dp%u", thr_id);
+    // Create epoll, add ctrl_req event
+    DP_Event dpEvent(thr_id);
+    if (dpEvent.Init() < 0){
+        DEBUG_INIT("failed to create epoll, thr_id=%u\n", thr_id);
+    } else {
+        DEBUG_INIT("sucess to create epoll, %u\n", thr_id);
+    }
+    //创建一个用于通信的fd文件
+    ctrl_req_ev_ctx = dp_add_ctrl_req_event(thr_id);
+    if (ctrl_req_ev_ctx == NULL) {
+        return NULL;
+    }
+    rcu_register_thread();
+//    g_shm->dp_active[thr_id] = true;
+    pthread_mutex_init(&th_ctrl_dp_lock(thr_id), NULL);
+    CDS_INIT_HLIST_HEAD(&th_ctx_list(thr_id));
+    timer_queue_init(&th_ctx_free_list(thr_id), RELEASED_CTX_TIMEOUT);
+    //初始化每个线程
+    dpi_init(DPI_INIT);
+    //事件监听
+    dpEvent.Run();
+
+    close(th_epoll_fd(thr_id));
+    th_epoll_fd(thr_id) = 0;
+
+    DEBUG_INIT("dp thread exits\n");
+
+    struct cds_hlist_node *itr, *next;
+    dp_context_t *ctx;
+    pthread_mutex_lock(&th_ctrl_dp_lock(thr_id));
+    cds_hlist_for_each_entry_safe(ctx, itr, next, &th_ctx_list(thr_id), link) {
+        dp_release_context(ctx, true);
+    }
+    pthread_mutex_unlock(&th_ctrl_dp_lock(thr_id));
+
+    close(ctrl_req_ev_ctx->fd);
+    free(ctrl_req_ev_ctx);
+
+    rcu_unregister_thread();
+
+    return NULL;
+}
+
+/* 修正时间误差 */
+void *debug_timer_thr(void *args) {
+    snprintf(THREAD_NAME, MAX_THREAD_NAME_LEN, "tmr");
+    g_start_time = time(NULL);
+    while (g_running) {
+        sleep(1);
+        g_seconds ++;
+        // 每隔30S纪录一次时间
+        if ((g_seconds & 0x1f) == 0) {
+            time_t time_elapsed = time(NULL) - g_start_time;
+            time_t curTime = time(NULL);
+            printf("CurrentTime is %s", ctime(&curTime));
+            printf("Starttime is %s", ctime(&g_start_time));
+            //修正时间误差
+            if (time_elapsed > g_seconds) {
+                DEBUG_TIMER("Advance timer for %us\n", time_elapsed - g_seconds);
+                g_seconds = time_elapsed;
+            }
+        }
+    }
+    return NULL;
 }
