@@ -108,6 +108,7 @@ static int net_run(const char *iface) {
         thr_id[i] = i;
         pthread_create(&dp_thr[i], NULL, dp_data_thr, &thr_id[i]);
     }
+    //新建一个tap设备
     if (iface != NULL) {
         sleep(2);
         dp_data_add_tap("/proc/1/ns/net", iface, "11:22:33:44:55:66", 0);

@@ -50,7 +50,7 @@
 #define DBG_POLICY  (1 << DBG_ENUM_POLICY)        //0x0100 0000 0000
 #define DBG_DETECT  (1 << DBG_ENUM_DETECT)        //0x1000 0000 0000
 
-#define DBG_DEFAULT (DBG_LOG|DBG_CTRL|DBG_INIT|DBG_ERROR)          //0x0000 0000 0011
+#define DBG_DEFAULT (DBG_PACKET|DBG_LOG|DBG_CTRL|DBG_INIT|DBG_ERROR)          //0x0000 0000 0011
 
 extern uint32_t g_debug_levels;                   //0x0000 0000 0011
 

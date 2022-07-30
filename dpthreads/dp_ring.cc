@@ -42,7 +42,7 @@ int DP_Ring::dp_tx(dp_context_t *ctx, uint8_t *pkt, int len, bool large_frame) {
         dp_tx_flush(ctx, 0);
 
         ret = send(ctx->fd, pkt, len, 0);
-        printf("Sent large frame: len=%u to %s\n", len, ctx->name);
+        DEBUG_PACKET("Sent large frame: len=%u to %s\n", len, ctx->name);
         return ret;
     }
 
@@ -63,7 +63,7 @@ int DP_Ring::dp_tx(dp_context_t *ctx, uint8_t *pkt, int len, bool large_frame) {
 
         dp_tx_flush(ctx, DEFAULT_PENDING_LIMIT);
     } else {
-        printf("TX queue full, status=0x%lx Drop!\n", tp->tp_status);
+        DEBUG_PACKET("TX queue full, status=0x%x Drop!\n", tp->tp_status);
 
         ctx->stats.tx_drops++;
         ret = -1;
@@ -102,15 +102,18 @@ int DP_Ring::dp_rx(dp_context_t *ctx, uint32_t tick) {
             if (tp->tp_status & TP_STATUS_COPY) {
                 if (tp->tp_len <= MAX_TSO_SIZE) {
                     int len = recv(ctx->fd, g_tso_packet, MAX_TSO_SIZE, 0);
-                    printf("Recv large frame: len=%u from %s\n", len, ctx->name);
+                    DEBUG_PACKET("Recv large frame: len=%u from %s\n", len, ctx->name);
+
                     context.large_frame = true;
                     dpi_recv_packet(&context, g_tso_packet, len);
                 } else {
                     recv(ctx->fd, g_tso_packet, 1, 0);
-                    printf("Discard: len=%u snap=%u from %s\n", tp->tp_len, tp->tp_snaplen, ctx->name);
+                    DEBUG_PACKET("Discard: len=%u snap=%u from %s\n",
+                                 tp->tp_len, tp->tp_snaplen, ctx->name);
                 }
             } else {
-                printf("Discard: len=%u snap=%u from %s\n", tp->tp_len, tp->tp_snaplen, ctx->name);
+                DEBUG_PACKET("Discard: len=%u snap=%u from %s\n",
+                             tp->tp_len, tp->tp_snaplen, ctx->name);
             }
         } else {
             context.large_frame = false;
@@ -173,7 +176,7 @@ int DP_Ring::dp_ring(int fd, const char *iface, dp_ring_t *ring, bool tap, bool 
     ring->rx_map = (uint8_t *) mmap(0, ring->map_size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_LOCKED, fd, 0);
 
     if (ring->rx_map == MAP_FAILED) {
-        printf("fail to mmap (size=0x%x).\n", ring->map_size);
+        DEBUG_ERROR(DBG_CTRL, "fail to mmap (size=0x%x).\n", ring->map_size);
         close(fd);
         return -1;
     }
@@ -224,7 +227,7 @@ int DP_Ring::dp_open_socket(dp_context_t *ctx, const char *iface, bool tap, bool
     //建立链路层socket, AF_PACKET地址族
     int fd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
     if (fd < 0) {
-        printf("fail to open socket.\n");
+        DEBUG_ERROR(DBG_CTRL, "fail to open socket.\n");
         return -1;
     }
     int err = 0;
@@ -235,7 +238,7 @@ int DP_Ring::dp_open_socket(dp_context_t *ctx, const char *iface, bool tap, bool
     }
     err = dp_ring_bind(fd, iface);
     if (err < 0) {
-        printf("fail to bind socket.\n");
+        DEBUG_ERROR(DBG_CTRL, "fail to bind socket.\n");
         dp_close_socket(ctx);
         return -1;
     }

@@ -67,7 +67,7 @@ static uint32_t conn4_hash(const void *key) {
            sdbm_hash((uint8_t *) &ckey->server, 4) + ckey->port + ckey->ingress + ckey->pol_id;
 }
 
-//å¯¹ç»è¿‡dpçš„æµé‡è¿›è¡Œé™é€Ÿ
+//¶Ô¾­¹ıdpµÄÁ÷Á¿½øĞĞÏŞËÙ
 static void dp_rate_limiter_reset(dp_rate_limter_t *rl, uint16_t dur, uint16_t dur_cnt_limit) {
     memset(rl, 0, sizeof(dp_rate_limter_t));
     rl->dur = dur;
@@ -75,17 +75,17 @@ static void dp_rate_limiter_reset(dp_rate_limter_t *rl, uint16_t dur, uint16_t d
     rl->start = get_current_time();
 }
 
-//åˆå§‹åŒ–dpçº¿ç¨‹æ± 
+//³õÊ¼»¯dpÏß³Ì³Ø
 int DP_CTRL_Thread::Init(dp_thread_data_t *dp_thread_data) {
     int thread_id, i;
     for (thread_id = 0; thread_id < g_dp_threads; thread_id++) {
-        dp_thread_data_t *th_data = &dp_thread_data[thread_id];      //th_dataæ¯ä¸ªdpçº¿ç¨‹çš„æ•°æ®
+        dp_thread_data_t *th_data = &dp_thread_data[thread_id];      //th_dataÃ¿¸ödpÏß³ÌµÄÊı¾İ
         th_data->log_reader = MAX_LOG_ENTRIES - 1;
         for (i = 0; i < MAX_LOG_ENTRIES; i++) {
             auto *hdr = (DPMsgHdr *) th_data->log_ring[i];
-            hdr->Kind = DP_KIND_THREAT_LOG;                            //æ“ä½œç±»å‹DP_KIND_THREAT_LOG
+            hdr->Kind = DP_KIND_THREAT_LOG;                            //²Ù×÷ÀàĞÍDP_KIND_THREAT_LOG
             hdr->Length = htons(
-                    LOG_ENTRY_SIZE);                       //å‘é€æ•°æ®åŒ…DP_KIND_THREAT_LOGçš„å¤§å° = æ¶ˆæ¯å¤´DPMsgHdrå¤§å° + DPMsgThreatlogçš„å¤§å°
+                    LOG_ENTRY_SIZE);                       //·¢ËÍÊı¾İ°üDP_KIND_THREAT_LOGµÄ´óĞ¡ = ÏûÏ¢Í·DPMsgHdr´óĞ¡ + DPMsgThreatlogµÄ´óĞ¡
         }
 
         //connection map
@@ -122,7 +122,7 @@ int DP_CTRL_Thread::dp_ctrl_handler() {
     json_t *msg;
 
     json_object_foreach(root, key, msg) {
-        //æµ‹è¯•
+        //²âÊÔ
         if (strcmp(key, "ctrl_keep_alive") == 0) {
             cout << json_dumps(msg, JSON_ENSURE_ASCII) << endl;
             dp_ctrl_keep_alive(msg);
@@ -198,7 +198,7 @@ int DP_CTRL_Thread::dp_ctrl_handler() {
     return ret;
 }
 
-//dpä¸agenté€šä¿¡ä¸»å‡½æ•°
+//dpÓëagentÍ¨ĞÅÖ÷º¯Êı
 void DP_CTRL_Thread::dp_ctrl_loop() {
     int ret, round = 0;
     fd_set read_fds;
@@ -210,11 +210,11 @@ void DP_CTRL_Thread::dp_ctrl_loop() {
     rcu_register_thread();
 
     unlink(DP_SERVER_SOCK);
-    //åˆ›å»ºé€šä¿¡å¥æŸ„æ–‡ä»¶
+    //´´½¨Í¨ĞÅ¾ä±úÎÄ¼ş
     g_ctrl_fd = socketDpServer.Init();
     g_ctrl_notify_fd = socketCtrlNotify.Init();
 
-    /* äº’æ–¥é”åˆå§‹åŒ–. */
+    /* »¥³âËø³õÊ¼»¯. */
     pthread_mutex_init(&g_ctrl_req_lock, NULL);
     pthread_cond_init(&g_ctrl_req_cond, NULL);
     pthread_mutex_init(&g_dlp_ctrl_req_lock, NULL);
@@ -222,16 +222,16 @@ void DP_CTRL_Thread::dp_ctrl_loop() {
 
     clock_gettime(CLOCK_MONOTONIC, &last);
     while (g_running) {
-        cout << "ç­‰å¾…æ•°æ®ä¼ è¾“" << endl;
+        cout << "µÈ´ıÊı¾İ´«Êä" << endl;
         timeout.tv_sec = 2;
         timeout.tv_usec = 0;
-        //åˆå§‹åŒ–çº¿ç¨‹ç»„
+        //³õÊ¼»¯Ïß³Ì×é
         FD_ZERO(&read_fds);
         FD_SET(g_ctrl_fd, &read_fds);
         ret = select(g_ctrl_fd + 1, &read_fds, nullptr, nullptr, &timeout);
 
         if (ret > 0 && FD_ISSET(g_ctrl_fd, &read_fds)) {
-            cout << "æ¥æ”¶åˆ°agentå‘é€çš„æ¶ˆæ¯" << endl;
+            cout << "½ÓÊÕµ½agent·¢ËÍµÄÏûÏ¢" << endl;
             dp_ctrl_handler();
         }
 
@@ -239,7 +239,7 @@ void DP_CTRL_Thread::dp_ctrl_loop() {
 
         if (now.tv_sec - last.tv_sec >= 2) {
             last = now;
-            //å‘é€æ•°æ®ç»™agent
+            //·¢ËÍÊı¾İ¸øagent
             //dp_ctrl_update_app(false);
         }
         round++;
@@ -265,13 +265,13 @@ int DP_CTRL_Thread::dp_ctrl_cfg_internal_net(json_t *msg, bool internal) {
     sa = json_object_get(msg, "subnet_addr");
     count = json_array_size(sa);
 
-    //ç»™æ‰€æœ‰subnetsåˆ†é…ä¸€å—è¿ç»­çš„å†…å­˜åŒº
+    //¸øËùÓĞsubnets·ÖÅäÒ»¿éÁ¬ĞøµÄÄÚ´æÇø
     subnet4 = (io_internal_subnet4_t *) calloc(sizeof(io_internal_subnet4_t) + count * sizeof(io_subnet4_t), 1);
     if (!subnet4) {
         std::cout << "Out of memory!" << std::endl;
     }
 
-    //å°†agentå‘é€è¿‡æ¥çš„jsonæ•°æ®è½¬åŒ–æˆCç»“æ„
+    //½«agent·¢ËÍ¹ıÀ´µÄjsonÊı¾İ×ª»¯³ÉC½á¹¹
     subnet4->count = count;
     for (int i = 0; i < count; i++) {
         c_sa = json_array_get(sa, i);
@@ -354,7 +354,7 @@ int DP_CTRL_Thread::dp_ctrl_keep_alive(json_t *msg) {
     return 0;
 }
 
-//å¢åŠ ä¸€ä¸ªserivce port
+//Ôö¼ÓÒ»¸öserivce port
 int DP_CTRL_Thread::dp_ctrl_add_srvc_port(json_t *msg) {
     const char *iface;
     json_t *jumboframe_obj;

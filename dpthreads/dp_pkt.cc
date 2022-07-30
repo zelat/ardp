@@ -9,6 +9,10 @@
 #include <sys/eventfd.h>
 #include "urcu.h"
 #include "urcu/rcuhlist.h"
+#include <sys/ioctl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <linux/if_tun.h>
 #ifdef __cplusplus
 extern "C"
 {
@@ -60,20 +64,17 @@ static int enter_netns(const char *netns) {
     int curfd, netfd;
     //打开当前网络命名空间
     if ((curfd = open("/proc/self/ns/net", O_RDONLY)) == -1) {
-//        DEBUG_ERROR(DBG_CTRL, "failed to open current network namespace\n");
-        printf("failed to open current network namespace\n");
+        DEBUG_ERROR(DBG_CTRL, "failed to open current network namespace\n");
         return -1;
     }
     //打开
     if ((netfd = open(netns, O_RDONLY)) == -1) {
-//        DEBUG_ERROR(DBG_CTRL, "failed to open network namespace: netns=%s\n", netns);
-        printf("failed to open network namespace: netns=%s\n", netns);
+        DEBUG_ERROR(DBG_CTRL, "failed to open network namespace: netns=%s\n", netns);
         close(curfd);
         return -1;
     }
     if (setns(netfd, CLONE_NEWNET) == -1) {
-//        DEBUG_ERROR(DBG_CTRL, "failed to enter network namespace: netns=%s error=%s\n", netns, strerror(errno));
-        printf("failed to enter network namespace: netns=%s error=%s\n", netns, strerror(errno));
+        DEBUG_ERROR(DBG_CTRL, "failed to enter network namespace: netns=%s error=%s\n", netns, strerror(errno));
         close(netfd);
         close(curfd);
         return -1;
@@ -283,7 +284,6 @@ int dp_data_add_tap(const char *netns, const char *iface, const char *ep_mac, in
             break;
         }
         ctx->peer_ctx = ctx;
-
         if (dp_epoll_add_ctx(ctx, thr_id) < 0) {
             dpRing.dp_close_socket(ctx);
             free(ctx);
@@ -293,6 +293,11 @@ int dp_data_add_tap(const char *netns, const char *iface, const char *ep_mac, in
 
         ether_aton_r(ep_mac, &ctx->ep_mac);
         strlcpy(ctx->name, name, sizeof(ctx->name));
+        /* 进程退出 tap0不消失 如果想删除则设置为0 */
+//        if(ioctl(ctx->fd, TUNSETPERSIST, 1) < 0){
+//            perror("enabling TUNSETPERSIST");
+//            exit(1);
+//        }
         cds_hlist_add_head_rcu(&ctx->link, &th_ctx_list(thr_id));
 
         DEBUG_CTRL("tap added netns=%s iface=%s fd=%d\n", netns, iface, ctx->fd);
@@ -328,7 +333,7 @@ dp_context_t *dp_alloc_context(const char *iface, int thr_id, bool tap, bool jum
 
     fd = dpRing.dp_open_socket(ctx, iface, tap, jumboframe, blocks, batch);
     if (fd < 0) {
-        printf("fail to open dp socket, iface=%s\n", iface);
+        DEBUG_ERROR(DBG_CTRL, "fail to open dp socket, iface=%s\n", iface);
         free(ctx);
         return nullptr;
     }
