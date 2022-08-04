@@ -405,9 +405,9 @@ void *dp_data_thr(void *args) {
     // Create epoll, add ctrl_req event
     DP_Event dpEvent(thr_id);
     if (dpEvent.Init() < 0){
-        DEBUG_INIT("failed to create epoll, thr_id=%u\n", thr_id);
+        DEBUG_INIT("Failed to create epoll, thr_id=%u\n", thr_id);
     } else {
-        DEBUG_INIT("sucess to create epoll, %u\n", thr_id);
+        DEBUG_INIT("Sucess to create epoll, %u\n", thr_id);
     }
     //创建一个用于通信的fd文件
     ctrl_req_ev_ctx = dp_add_ctrl_req_event(thr_id);
@@ -415,6 +415,7 @@ void *dp_data_thr(void *args) {
         return NULL;
     }
     rcu_register_thread();
+
     g_shm->dp_active[thr_id] = true;
 
     pthread_mutex_init(&th_ctrl_dp_lock(thr_id), NULL);

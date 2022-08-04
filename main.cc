@@ -182,7 +182,7 @@ int main(int argc, char **argv) {
 //    test_dpi_hs_search dpiHsSearch();
     g_shm = get_shm<dp_mnt_shm_t>(sizeof(dp_mnt_shm_t));
     if (g_shm == NULL) {
-        printf("Unable to get shared memory.\n");
+        DEBUG_INIT("Unable to get shared memory.\n");
         return -1;
     }
 
