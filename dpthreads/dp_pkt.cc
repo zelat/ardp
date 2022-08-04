@@ -46,7 +46,6 @@ DP_Ring dpRing;
 int bld_dlp_epoll_fd;
 int bld_dlp_ctrl_req_evfd;
 uint32_t bld_dlp_ctrl_req;
-
 //int dp_open_socket(dp_context_t *ctx, const char *iface, bool tap, bool tc, uint blocks, uint batch);
 //
 //int dp_rx(dp_context_t *ctx, uint32_t tick);
@@ -416,7 +415,8 @@ void *dp_data_thr(void *args) {
         return NULL;
     }
     rcu_register_thread();
-//    g_shm->dp_active[thr_id] = true;
+    g_shm->dp_active[thr_id] = true;
+
     pthread_mutex_init(&th_ctrl_dp_lock(thr_id), NULL);
     CDS_INIT_HLIST_HEAD(&th_ctx_list(thr_id));
     timer_queue_init(&th_ctx_free_list(thr_id), RELEASED_CTX_TIMEOUT);

@@ -173,7 +173,7 @@ void DP_Event::Run() {
             }
             dpi_timeout(g_seconds);
             // Update heartbeat
-//            g_shm->dp_hb[threat_id]++;
+            g_shm->dp_hb[threat_id] ++;
             last_seconds = g_seconds;
         }
     }

@@ -38,9 +38,10 @@ typedef struct rate_limiter_ {
 
 extern int g_stats_slot;
 
+//dp心跳检测
 typedef struct dp_mnt_shm_ {
-    uint32_t dp_hb[MAX_DP_THREADS];
-    bool dp_active[MAX_DP_THREADS];
+    uint32_t dp_hb[MAX_DP_THREADS];    //心跳检测计时器
+    bool dp_active[MAX_DP_THREADS];    //dp是否是激活状态
 } dp_mnt_shm_t;
 
 //定义dp线程结构

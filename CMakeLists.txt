@@ -98,7 +98,6 @@ target_sources(dpthreads
         "${CMAKE_SOURCE_DIR}/dpthreads/domain_socket_ctrl_dp.cc"
         "${CMAKE_SOURCE_DIR}/dpthreads/domain_socket_ctrl_notify.cc"
         "${CMAKE_SOURCE_DIR}/dpthreads/dp_event.cc"
-        "${CMAKE_SOURCE_DIR}/dpthreads/dp_context.cc"
         "${CMAKE_SOURCE_DIR}/dpthreads/dp_pkt.cc"
         "${CMAKE_SOURCE_DIR}/dpthreads/dp_ring.cc"
         "${CMAKE_SOURCE_DIR}/dpthreads/dp_event.cc"

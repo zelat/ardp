@@ -1,7 +1,6 @@
 //
 // Created by tanchao on 2022/6/30.
 //
-
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -18,7 +17,6 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <iostream>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -28,9 +26,9 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+#include "base/logger.h"
 #include "apis.h"
 #include "dpthreads/dp_ctrl_thread.h"
-#include "base/logger.h"
 
 extern int dp_data_add_tap(const char *netns, const char *iface, const char *ep_mac, int thr_id);
 
@@ -58,16 +56,18 @@ static void dp_signal_exit(int num) {
 }
 
 /* 创建共享内存区 */
-static void *get_shm(size_t size) {
+template <typename T>
+T *get_shm(size_t size) {
     int fd;
     void *ptr;
 
+    //创建共享内存文件(/dev/shm/dp_mnt.shm)
     fd = shm_open(DP_MNT_SHM_NAME, O_CREAT | O_RDWR, S_IRWXU | S_IRWXG);
     if (fd < 0) {
         return NULL;
     }
-
-    ptr = mmap(NULL, sizeof(dp_mnt_shm_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    //将dp_mnt.shm共享内存文件映射到内存，MAP_SHARED建立进程间共享，用于进程间通信
+    ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (ptr == MAP_FAILED || ptr == NULL) {
         close(fd);
         return NULL;
@@ -75,7 +75,7 @@ static void *get_shm(size_t size) {
 
     close(fd);
 
-    return ptr;
+    return static_cast<T *>(ptr);
 }
 
 static int net_run(const char *iface) {
@@ -176,12 +176,11 @@ int main(int argc, char **argv) {
     CDS_INIT_LIST_HEAD(&g_subnet4_list);
     CDS_INIT_LIST_HEAD(&g_subnet6_list);
 
-
     g_callback.debug = debug_stdout;
     dpi_setup(&g_callback, &g_config);
 
 //    test_dpi_hs_search dpiHsSearch();
-    g_shm = (dp_mnt_shm_t *) get_shm(sizeof(dp_mnt_shm_t));
+    g_shm = get_shm<dp_mnt_shm_t>(sizeof(dp_mnt_shm_t));
     if (g_shm == NULL) {
         printf("Unable to get shared memory.\n");
         return -1;
