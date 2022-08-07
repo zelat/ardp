@@ -199,7 +199,7 @@ int dp_data_add_port(const char *iface, bool jumboframe, int thr_id) {
     thr_id = thr_id % MAX_DP_THREADS;
     if (th_epoll_fd(thr_id) == 0) {
         // TODO: May need to wait a while for dp thread ready
-        printf("epoll is not initiated, iface=%s thr_id=%d\n", iface, thr_id);
+        DEBUG_ERROR(DBG_CTRL, "epoll is not initiated, iface=%s thr_id=%d\n", iface, thr_id);
         return -1;
     }
 
@@ -207,9 +207,8 @@ int dp_data_add_port(const char *iface, bool jumboframe, int thr_id) {
     pthread_mutex_lock(&th_ctrl_dp_lock(thr_id));
 
     do {
-        printf("testing===================");
         if (th_ctx_inline(thr_id) != nullptr) {
-            printf("iface already exists, iface=%s\n", iface);
+            DEBUG_CTRL("iface already exists, iface=%s\n", iface);
             break;
         }
         ctx = dp_alloc_context(iface, thr_id, false, jumboframe, INLINE_BLOCK, INLINE_BATCH);
@@ -223,7 +222,7 @@ int dp_data_add_port(const char *iface, bool jumboframe, int thr_id) {
         strlcpy(ctx->name, iface, sizeof(ctx->name));
         cds_hlist_add_head(&ctx->link, &th_ctx_list(thr_id));
 
-        printf("added iface=%s fd=%d\n", iface, ctx->fd);
+        DEBUG_CTRL("added iface=%s fd=%d\n", iface, ctx->fd);
     } while (false);
 
     pthread_mutex_unlock(&th_ctrl_dp_lock(thr_id));
@@ -426,8 +425,7 @@ void *dp_data_thr(void *args) {
     //事件监听
     dpEvent.Run();
 
-    close(th_epoll_fd(thr_id));
-    th_epoll_fd(thr_id) = 0;
+    dpEvent.ReleaseFd();
 
     DEBUG_INIT("dp thread exits\n");
 

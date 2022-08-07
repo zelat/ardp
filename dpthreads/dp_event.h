@@ -15,6 +15,7 @@ public:
     void Exit();
     int AddEventNode(dp_context_t *ctx);
     int RemoveEventNode(dp_context_t *ctx);
+    void ReleaseFd();
     void Run();
     int GetEventFd();
 private:

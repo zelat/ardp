@@ -149,10 +149,19 @@ typedef struct dp_context_ {
 
 void *dp_data_thr(void *args);
 
-extern dp_thread_data_t g_dp_thread_data[];
 extern dp_mnt_shm_t *g_shm;
 extern int g_running;
 extern uint32_t g_seconds;
 extern time_t g_start_time;
 time_t get_current_time();
+
+extern dp_thread_data_t g_dp_thread_data[MAX_DP_THREADS];
+
+#define th_epoll_fd(thr_id)      (g_dp_thread_data[thr_id].epoll_fd)
+#define th_ctx_list(thr_id)      (g_dp_thread_data[thr_id].ctx_list)
+#define th_ctx_free_list(thr_id) (g_dp_thread_data[thr_id].ctx_free_list)
+#define th_ctx_inline(thr_id)    (g_dp_thread_data[thr_id].ctx_inline)
+#define th_ctrl_dp_lock(thr_id)  (g_dp_thread_data[thr_id].ctrl_dp_lock)
+#define th_ctrl_req_evfd(thr_id) (g_dp_thread_data[thr_id].ctrl_req_evfd)
+#define th_ctrl_req(thr_id)      (g_dp_thread_data[thr_id].ctrl_req)
 #endif //ARDP_DP_TYPES_H

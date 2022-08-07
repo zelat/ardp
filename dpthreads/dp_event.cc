@@ -35,10 +35,10 @@ DP_Event::~DP_Event() {
 int DP_Event::Init() {
     event_fd = epoll_create(MAX_EPOLL_EVENTS);
     if ((th_epoll_fd(threat_id) = event_fd) < 0) {
-//        DEBUG_INIT("failed to create epoll, thr_id=%u\n", threat_id);
+        DEBUG_INIT("failed to create epoll, thr_id=%u\n", threat_id);
         return EPOLL_FAILED;
     }
-//    DEBUG_INIT("success to create epoll, thr_id=%d\n", 111);
+    DEBUG_INIT("success to create epoll, thr_id=%d\n", 111);
     return EPOLL_SUCCESS;
 }
 
@@ -178,6 +178,11 @@ void DP_Event::Run() {
         }
     }
 
+}
+
+void DP_Event::ReleaseFd() {
+    close(th_epoll_fd(threat_id));
+    th_epoll_fd(threat_id) = 0;
 }
 
 

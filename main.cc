@@ -35,6 +35,7 @@ extern int dp_data_add_tap(const char *netns, const char *iface, const char *ep_
 __thread int THREAD_ID;           //线程局部存储
 __thread char THREAD_NAME[32];
 
+dp_thread_data_t g_dp_thread_data[MAX_DP_THREADS];
 struct timeval g_now;
 dp_mnt_shm_t *g_shm;
 int g_dp_threads = 0;
@@ -47,8 +48,6 @@ int g_running;
 pthread_mutex_t g_debug_lock;
 struct cds_list_head g_subnet4_list;
 struct cds_list_head g_subnet6_list;
-
-dp_thread_data_t g_dp_thread_data[MAX_DP_THREADS];
 
 /* 中断dp的运行 */
 static void dp_signal_exit(int num) {
