@@ -282,7 +282,7 @@ typedef struct dpi_policy_ {
     dpi_policy_rule_t *rule_list;
 } dpi_policy_t;
 
-int dpi_policy_cfg(int cmd, dpi_policy_t *policy, int flag);
+//int dpi_policy_cfg(int cmd, dpi_policy_t *policy, int flag);
 void dp_policy_destroy(void *policy_hdl);
 void dpi_fqdn_entry_mark_delete(const char *name);
 void dpi_fqdn_entry_delete_marked();

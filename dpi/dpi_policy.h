@@ -76,5 +76,6 @@ int snooped_fqdn_ipv4_mapping(char *name, uint32_t *ip, int cnt);
 
 void dpi_unknown_ip_init(void);
 
+int dpi_policy_cfg(int cmd, dpi_policy_t *p, int flag);
 
 #endif //ARDP_DPI_POLICY_H
