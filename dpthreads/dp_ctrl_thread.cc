@@ -413,7 +413,7 @@ int DP_CTRL_Thread::dp_ctrl_cfg_internal_net(json_t *msg, bool internal) {
     //给所有subnets分配一块连续的内存区
     subnet4 = (io_internal_subnet4_t *) calloc(sizeof(io_internal_subnet4_t) + count * sizeof(io_subnet4_t), 1);
     if (!subnet4) {
-        std::cout << "Out of memory!" << std::endl;
+        DEBUG_ERROR(DBG_CTRL, "out of memory!!\n")
     }
 
     //将agent发送过来的json数据转化成C结构
@@ -429,16 +429,16 @@ int DP_CTRL_Thread::dp_ctrl_cfg_internal_net(json_t *msg, bool internal) {
     } else {
         if (!t_internal_subnet4) {
             if (internal) {
-                std::cout << "missed internal ip msg start!" << std::endl;
+                DEBUG_ERROR(DBG_CTRL, "missed internal ip msg start!\n");
             } else {
-                std::cout << "missed policy addr msg start!" << std::endl;
+                DEBUG_ERROR(DBG_CTRL, "missed policy addr msg start!\n");
             }
             return -1;
         }
         tsubnet4 = (io_internal_subnet4_t *) calloc(
                 sizeof(io_internal_subnet4_t) + (t_internal_subnet4->count + count) * sizeof(io_subnet4_t), 1);
         if (!tsubnet4) {
-            std::cout << "out of memory!!" << std::endl;
+            DEBUG_ERROR(DBG_CTRL, "out of memory!!\n")
             return -1;
         }
 
