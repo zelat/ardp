@@ -184,4 +184,6 @@ dpi_sigopt_api_t *dpi_sigopt_sig_id_register (void);
 dpi_sigopt_api_t *dpi_sigopt_name_register (void);
 dpi_sigopt_api_t *dpi_sigopt_context_register (void);
 dpi_sigopt_api_t *dpi_sigopt_pcre_register (void);
+
+void dp_dlp_destroy(void *dlp_detector);
 #endif

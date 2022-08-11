@@ -78,4 +78,5 @@ void dpi_unknown_ip_init(void);
 
 int dpi_policy_cfg(int cmd, dpi_policy_t *p, int flag);
 
+void dp_policy_destroy(void *policy_hdl);
 #endif //ARDP_DPI_POLICY_H

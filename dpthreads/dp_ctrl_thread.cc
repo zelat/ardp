@@ -21,6 +21,7 @@ extern "C"
 #include "dp_ctrl_thread.h"
 #include "dp_pkt.h"
 #include "dpi/dpi_policy.h"
+#include "dpi/sig/dpi_sig.h"
 
 using namespace std;
 
@@ -268,14 +269,17 @@ int DP_CTRL_Thread::dp_ctrl_handler() {
         }
         cout << json_dumps(msg, JSON_ENSURE_ASCII) << endl;
         if (strcmp(key, "ctrl_add_srvc_port") == 0) {
+            cout << "ctrl_add_srvc_port" << endl;
             ret = dp_ctrl_add_srvc_port(msg);
         } else if (strcmp(key, "ctrl_del_srvc_port") == 0) {
             cout << "dp_ctrl_del_srvc_port" << endl;
         } else if (strcmp(key, "ctrl_add_port_pair") == 0) {
+            cout << "ctrl_add_port_pair" << endl;
 //            ret = dp_ctrl_add_port_pair(msg);
         } else if (strcmp(key, "ctrl_del_port_pair") == 0) {
             cout << "dp_ctrl_del_port_pair" << endl;
         } else if (strcmp(key, "ctrl_add_tap_port") == 0) {
+            cout << "ctrl_add_tap_port" << endl;
             ret = dp_ctrl_add_tap_port(msg);
         } else if (strcmp(key, "ctrl_del_tap_port") == 0) {
             cout << "dp_ctrl_del_tap_port" << endl;
@@ -284,6 +288,7 @@ int DP_CTRL_Thread::dp_ctrl_handler() {
         } else if (strcmp(key, "ctrl_del_nfq_port") == 0) {
             cout << "dp_ctrl_del_nfq_port" << endl;
         } else if (strcmp(key, "ctrl_add_mac") == 0) {
+            cout << "ctrl_add_mac" << endl;
             ret = dp_ctrl_add_mac(msg);
         } else if (strcmp(key, "ctrl_del_mac") == 0) {
             cout << "dp_ctrl_del_mac" << endl;
@@ -315,10 +320,12 @@ int DP_CTRL_Thread::dp_ctrl_handler() {
         } else if (strcmp(key, "ctrl_cfg_set_fqdn") == 0) {
             cout << "dp_ctrl_set_fqdn" << endl;
         } else if (strcmp(key, "ctrl_cfg_internal_net") == 0) {
+            cout << "ctrl_cfg_internal_net" << endl;
             ret = dp_ctrl_cfg_internal_net(msg, true);
         } else if (strcmp(key, "ctrl_cfg_specip_net") == 0) {
             cout << "dp_ctrl_cfg_specialip_net" << endl;
         } else if (strcmp(key, "ctrl_cfg_policy_addr") == 0) {
+            cout << "dp_ctrl_cfg_internal_net" << endl;
             ret = dp_ctrl_cfg_internal_net(msg, false);
         } else if (strcmp(key, "ctrl_cfg_dlp") == 0) {
             cout << "dp_ctrl_cfg_dlp" << endl;
@@ -392,7 +399,6 @@ void DP_CTRL_Thread::dp_ctrl_loop() {
 }
 
 int DP_CTRL_Thread::dp_ctrl_cfg_internal_net(json_t *msg, bool internal) {
-    printf("test");
     int count;
     int flag;
     json_t *sa, *c_sa;

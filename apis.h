@@ -283,7 +283,6 @@ typedef struct dpi_policy_ {
 } dpi_policy_t;
 
 //int dpi_policy_cfg(int cmd, dpi_policy_t *policy, int flag);
-void dp_policy_destroy(void *policy_hdl);
 void dpi_fqdn_entry_mark_delete(const char *name);
 void dpi_fqdn_entry_delete_marked();
 
@@ -397,7 +396,6 @@ typedef struct dpi_dlpbld_mac_ {
 
 int dpi_sig_bld(dpi_dlpbld_t *dlpsig, int flag);
 int dpi_sig_bld_update_mac(dpi_dlpbld_mac_t *dlpbld_mac);
-void dp_dlp_destroy(void *dlp_detector);
 
 #define CTRL_REQ_TIMEOUT 4
 #define CTRL_DLP_REQ_TIMEOUT 2
