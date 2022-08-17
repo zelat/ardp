@@ -191,12 +191,13 @@ dp_context_t *dp_add_ctrl_req_event(int thr_id)
     return ctx;
 }
 
+
 int dp_data_add_port(const char *iface, bool jumboframe, int thr_id) {
     int ret = 0;
     dp_context_t *ctx;
 
-    printf("thr_id = %d", thr_id);
     thr_id = thr_id % MAX_DP_THREADS;
+    DEBUG_LOGGER("thr_id = %d\n", thr_id);
     if (th_epoll_fd(thr_id) == 0) {
         // TODO: May need to wait a while for dp thread ready
         DEBUG_ERROR(DBG_CTRL, "epoll is not initiated, iface=%s thr_id=%d\n", iface, thr_id);
@@ -324,11 +325,12 @@ dp_context_t *dp_lookup_context(struct cds_hlist_head *list, const char *name) {
 dp_context_t *dp_alloc_context(const char *iface, int thr_id, bool tap, bool jumboframe, uint blocks, uint batch) {
     int fd;
     dp_context_t *ctx;
+    // 给ctx分配内存空间
     ctx = (dp_context_t *) calloc(1, sizeof(*ctx));
     if (ctx == nullptr) {
         return nullptr;
     }
-
+    // 接收和发送以太网数据帧
     fd = dpRing.dp_open_socket(ctx, iface, tap, jumboframe, blocks, batch);
     if (fd < 0) {
         DEBUG_ERROR(DBG_CTRL, "fail to open dp socket, iface=%s\n", iface);

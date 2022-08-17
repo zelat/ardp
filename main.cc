@@ -176,6 +176,7 @@ int main(int argc, char **argv) {
     CDS_INIT_LIST_HEAD(&g_subnet6_list);
 
     g_callback.debug = debug_stdout;
+
     dpi_setup(&g_callback, &g_config);
 
 //    test_dpi_hs_search dpiHsSearch();

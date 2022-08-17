@@ -253,7 +253,7 @@ int DP_CTRL_Thread::dp_ctrl_handler() {
 
     root = json_loads(ctrl_msg_buf, 0, &error);
     if (root == NULL) {
-        cout << "Invalid json format on line " << error.line << ": " << error.text << endl;
+        DEBUG_ERROR(DBG_CTRL, "Invalid json format on line %d: %s\n", error.line, error.text);
         return -1;
     }
 
@@ -261,12 +261,13 @@ int DP_CTRL_Thread::dp_ctrl_handler() {
     json_t *msg;
 
     json_object_foreach(root, key, msg) {
-        //测试
+        // 打印心跳检测数据
         if (strcmp(key, "ctrl_keep_alive") == 0) {
             cout << json_dumps(msg, JSON_ENSURE_ASCII) << endl;
             dp_ctrl_keep_alive(msg);
             continue;
         }
+        // 打印agent发送的消息
         cout << json_dumps(msg, JSON_ENSURE_ASCII) << endl;
         if (strcmp(key, "ctrl_add_srvc_port") == 0) {
             cout << "ctrl_add_srvc_port" << endl;
@@ -325,7 +326,7 @@ int DP_CTRL_Thread::dp_ctrl_handler() {
         } else if (strcmp(key, "ctrl_cfg_specip_net") == 0) {
             cout << "dp_ctrl_cfg_specialip_net" << endl;
         } else if (strcmp(key, "ctrl_cfg_policy_addr") == 0) {
-            cout << "dp_ctrl_cfg_internal_net" << endl;
+            cout << "dP_ctrl_cfg_policy_addr" << endl;
             ret = dp_ctrl_cfg_internal_net(msg, false);
         } else if (strcmp(key, "ctrl_cfg_dlp") == 0) {
             cout << "dp_ctrl_cfg_dlp" << endl;
@@ -398,6 +399,9 @@ void DP_CTRL_Thread::dp_ctrl_loop() {
     rcu_unregister_thread();
 }
 
+/* 根据传入的internal参数: 1. 如果internal = 0,则根据传入的cidr配置内部网络
+                        2. 如果internal = 1,则配置policy addr
+*/
 int DP_CTRL_Thread::dp_ctrl_cfg_internal_net(json_t *msg, bool internal) {
     int count;
     int flag;
@@ -410,7 +414,8 @@ int DP_CTRL_Thread::dp_ctrl_cfg_internal_net(json_t *msg, bool internal) {
     sa = json_object_get(msg, "subnet_addr");
     count = json_array_size(sa);
 
-    //给所有subnets分配一块连续的内存区
+    //给所有subnets分配一块连续的内存区, sizeof(io_internal_subnet4_t) =4
+    // sizeof(io_subnet4_t) = 8
     subnet4 = (io_internal_subnet4_t *) calloc(sizeof(io_internal_subnet4_t) + count * sizeof(io_subnet4_t), 1);
     if (!subnet4) {
         DEBUG_ERROR(DBG_CTRL, "out of memory!!\n")
@@ -424,9 +429,11 @@ int DP_CTRL_Thread::dp_ctrl_cfg_internal_net(json_t *msg, bool internal) {
         subnet4->list[i].mask = inet_addr(json_string_value(json_object_get(c_sa, "mask")));
     }
 
+    // 传入的flag一般为3，指的是小于<600的字段
     if (flag & MSG_START) {
         t_internal_subnet4 = subnet4;
     } else {
+        // 如果传入的flag = 0, 则表示传入的subnet信息为null
         if (!t_internal_subnet4) {
             if (internal) {
                 DEBUG_ERROR(DBG_CTRL, "missed internal ip msg start!\n");
