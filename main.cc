@@ -77,6 +77,8 @@ T *get_shm(size_t size) {
     return static_cast<T *>(ptr);
 }
 
+void init_dummy_ep(io_ep_t *ep);
+
 static int net_run(const char *iface) {
     pthread_t timer_thr;
     pthread_t bld_dlp_thr;
@@ -172,14 +174,19 @@ int main(int argc, char **argv) {
     setlinebuf(stdout);
     pthread_mutex_init(&g_debug_lock, NULL);
     rcu_map_init(&g_ep_map, 1, offsetof(io_mac_t, node), dp_ep_match, dp_ep_hash);
+    // 使用URCU数据结构创建2个list
     CDS_INIT_LIST_HEAD(&g_subnet4_list);
     CDS_INIT_LIST_HEAD(&g_subnet6_list);
+
+    // 初始化虚拟网络设备
+    init_dummy_ep(&g_config.dummy_ep);
+    g_config.dummy_mac.ep = &g_config.dummy_ep;
 
     g_callback.debug = debug_stdout;
 
     dpi_setup(&g_callback, &g_config);
 
-//    test_dpi_hs_search dpiHsSearch();
+    // test_dpi_hs_search dpiHsSearch();
     g_shm = get_shm<dp_mnt_shm_t>(sizeof(dp_mnt_shm_t));
     if (g_shm == NULL) {
         DEBUG_INIT("Unable to get shared memory.\n");

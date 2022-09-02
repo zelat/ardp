@@ -34,7 +34,6 @@ public:
 //    static void *dp_data_thr(void *args);
 private:
     int dp_ctrl_handler();
-protected:
     int dp_ctrl_cfg_internal_net(json_t *msg, bool internal);
     int dp_ctrl_add_srvc_port(json_t *msg);
     int dp_ctrl_keep_alive(json_t *msg);

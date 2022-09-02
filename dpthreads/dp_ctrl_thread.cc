@@ -214,6 +214,11 @@ static void dp_rate_limiter_reset(dp_rate_limter_t *rl, uint16_t dur, uint16_t d
     rl->start = get_current_time();
 }
 
+void init_dummy_ep(io_ep_t *ep) {
+    rcu_map_init(&ep->app_map, 4, offsetof(io_app_t, node), ep_app_match, ep_app_hash);
+    ep->tap = true;
+}
+
 //初始化dp线程池
 int DP_CTRL_Thread::Init(dp_thread_data_t *dp_thread_data) {
     int thread_id, i;
@@ -795,5 +800,8 @@ int DP_CTRL_Thread::dp_ctrl_add_tap_port(json_t *msg) {
 
     return dp_data_add_tap(netns, iface, ep_mac, 0);
 }
+
+
+
 
 
